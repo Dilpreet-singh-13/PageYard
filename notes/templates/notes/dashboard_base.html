@@ -1,0 +1,156 @@
+{% load django_htmx %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>My Notes Dashboard</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+	<!-- alpine global store init -->
+	<script>
+		document.addEventListener('alpine:init', () => {
+			Alpine.store('group_ui', {
+          editGroupId: null,
+					start_edit(id) {this.editGroupId = id;},
+					stop_edit() {this.editGroupId = null;}
+			}) // stores the id of the group list row being edited
+		});
+	</script>
+
+	{% htmx_script %}
+</head>
+<body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
+<div x-data="{ showSidebar: false, menuIsOpen: false }" class="relative flex w-full flex-col md:flex-row">
+  <a class="sr-only" href="#main-content">skip to the main content</a>
+
+  <div x-cloak x-show="showSidebar"
+       class="fixed inset-0 z-10 bg-neutral/50 backdrop-blur-sm md:hidden"
+       aria-hidden="true" x-on:click="showSidebar = false" x-transition.opacity></div>
+
+  <nav x-cloak
+       class="fixed left-0 z-20 flex h-svh w-60 shrink-0 flex-col border-r border-base-300 bg-base-200 p-4 transition-transform duration-300 md:w-64 md:translate-x-0 md:relative"
+       x-bind:class="showSidebar ? 'translate-x-0' : '-translate-x-60'" aria-label="sidebar navigation">
+
+    <a href="{% url 'notes:home' %}"
+       class="ml-2 my-2 w-fit text-2xl font-bold text-base-content">
+        <span class="text-primary">MyNotes</span>
+    </a>
+
+    <!-- Search -->
+    <label class="input input-bordered input-secondary flex items-center gap-2 mb-4 bg-base-100">
+        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+            </g>
+        </svg>
+        <input type="search" class="grow" required placeholder="Search"/>
+    </label>
+		<!-- Sidebar item -->
+    <div class="flex flex-col gap-2 overflow-y-auto pb-6">
+      <a href="{% url 'notes:dashboard' %}"
+         class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 focus-visible:underline focus:outline-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5 shrink-0"
+               aria-hidden="true">
+              <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-1ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9A1.5 1.5 0 0 0 9.5 18h1a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 10.5 6h-1ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5A1.5 1.5 0 0 0 3.5 18h1A1.5 1.5 0 0 0 6 16.5v-5A1.5 1.5 0 0 0 4.5 10h-1Z"/>
+          </svg>
+          <span>Home</span>
+      </a>
+
+	    <a href="{% url 'notes:all_notes_view' %}"
+         class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 focus-visible:underline focus:outline-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5 shrink-0"
+               aria-hidden="true">
+              <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-1ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9A1.5 1.5 0 0 0 9.5 18h1a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 10.5 6h-1ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5A1.5 1.5 0 0 0 3.5 18h1A1.5 1.5 0 0 0 6 16.5v-5A1.5 1.5 0 0 0 4.5 10h-1Z"/>
+          </svg>
+          <span>All Notes</span>
+      </a>
+
+      <a href="{% url 'notes:group_list_page' %}"
+         class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 focus-visible:underline focus:outline-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5 shrink-0"
+               aria-hidden="true">
+              <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-1ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9A1.5 1.5 0 0 0 9.5 18h1a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 10.5 6h-1ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5A1.5 1.5 0 0 0 3.5 18h1A1.5 1.5 0 0 0 6 16.5v-5A1.5 1.5 0 0 0 4.5 10h-1Z"/>
+          </svg>
+          <span>Manage Groups</span>
+      </a>
+			<!-- Collapseable Menu -->
+      <div x-data="{ isExpanded: false }" class="flex flex-col">
+          <button type="button" x-on:click="isExpanded = ! isExpanded"
+                  class="flex items-center justify-between rounded-lg gap-2 px-2 py-1.5 text-sm font-medium underline-offset-2 focus:outline-hidden focus-visible:underline transition-colors hover:bg-base-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                   class="size-5 shrink-0">
+                  <path d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.615 16.428a1.224 1.224 0 0 1-.569-1.175 6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572ZM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755 4.502 4.502 0 0 1 5.874 2.636.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16Z"/>
+              </svg>
+              <span class="mr-auto text-left">Starred</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                   class="size-5 transition-transform shrink-0"
+                   x-bind:class="isExpanded ? 'rotate-180' : 'rotate-0'">
+                  <path fill-rule="evenodd"
+                        d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                        clip-rule="evenodd"/>
+              </svg>
+          </button>
+
+          <ul x-cloak x-collapse x-show="isExpanded">
+              <li class="px-1 py-0.5 first:mt-2">
+                  <a href="#"
+                     class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm text-base-content hover:bg-base-300">Users</a>
+              </li>
+              <li class="px-1 py-0.5">
+                  <a href="#"
+                     class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm text-base-content hover:bg-base-300">Permissions</a>
+              </li>
+              <li class="px-1 py-0.5">
+                  <a href="#"
+                     class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm text-base-content hover:bg-base-300">
+                    Activity Log
+                  </a>
+              </li>
+          </ul>
+      </div>
+
+      <div class="mt-2 space-y-2">
+        <a href="{% url 'notes:new_note_page' %}" class="btn btn-primary w-full text-primary-content">Create New Note</a>
+	      <!-- TODO: create group button -->
+      </div>
+    </div>
+
+      <button type="button"
+              class="mt-auto flex w-full items-center rounded-lg gap-2 p-2 text-left text-base-content hover:bg-base-300 focus-visible:outline-primary"
+              x-bind:class="menuIsOpen ? 'bg-base-300' : ''"
+              x-on:click="menuIsOpen = ! menuIsOpen">
+          <img src="https://penguinui.s3.amazonaws.com/component-assets/avatar-7.webp"
+               class="size-8 object-cover rounded-full" alt="avatar"/>
+          <div class="flex flex-col">
+              <span class="text-sm font-bold">Alex Martinez</span>
+              <span class="w-32 overflow-hidden text-ellipsis text-xs md:w-36 opacity-70">@alexmartinez</span>
+          </div>
+      </button>
+  </nav>
+	{#	main-content id added for screen reader	#}
+  <div id="main-content" class="h-svh w-full overflow-y-auto p-4 bg-base-100 text-base-content">
+      {% block main %}
+      {% endblock main %}
+  </div>
+	{# Sidebar toggle button for mobile #}
+  <button x-cloak
+          class="fixed right-4 bottom-4 z-20 btn btn-circle btn-primary text-primary-content md:hidden shadow-lg"
+          x-on:click="showSidebar = ! showSidebar">
+      <svg x-show="showSidebar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+           class="size-5">
+          <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+      </svg>
+      <svg x-show="! showSidebar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+           class="size-5">
+          <path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5-1v12h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zM4 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h2z"/>
+      </svg>
+      <span class="sr-only">sidebar toggle</span>
+  </button>
+</div>
+</body>
+</html>

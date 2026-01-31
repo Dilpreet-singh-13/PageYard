@@ -1,3 +1,4 @@
+.idea/
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -6,5 +7,15 @@ dist/
 wheels/
 *.egg-info
 
+# Environment variable files
+.env
+
 # Virtual environments
 .venv
+# Tailwind dev setup
+node_modules/
+input.css
+
+# temp & secret files
+TODO.txt
+google_client_secret.json

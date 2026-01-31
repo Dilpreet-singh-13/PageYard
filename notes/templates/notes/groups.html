@@ -1,0 +1,76 @@
+<!-- USES TEMPLATES:
+notes/partial_group_item.html
+-->
+{% extends 'notes/dashboard_base.html' %}
+
+{% block main %}
+<!-- create new group section -->
+<div class="bg-base-200 rounded-xl p-4 shadow-lg">
+	<h2 class="text-primary-content text-2xl font-bold">Create new Group</h2>
+	<form hx-post="{% url 'notes:group_create_page' %}"
+				hx-target="#group-list"
+				hx-swap="beforeend"
+				hx-on::after-request="this.reset()"
+	      x-ref="nameInputForm"
+				class="flex items-end mt-4 gap-4">
+		{% csrf_token %}
+		<label class="floating-label flex-1">
+		  <span class="">Group Name</span>
+		  <input type="text" name="name" required placeholder="Enter group name" class="input input-lg input-primary w-full" />
+		</label>
+
+		<button type="button"
+		        @click="$refs.nameInputForm.reset()"
+		        class="btn btn-lg btn-soft btn-accent shrink-0">
+			Reset
+		</button>
+		<!-- !! gives clean bool value if editGroupId has any truthly value -->
+		<button type="submit"
+		        :disabled="!!$store.group_ui.editGroupId"
+						:class="$store.group_ui.editGroupId ? 'opacity-50 pointer-events-none' : ''"
+		        class="btn btn-lg btn-primary shrink-0">
+			Create new Group
+		</button>
+
+	</form>
+</div>
+
+<!-- group list view -->
+<div class="p-4">
+	<div class="flex flex-row justify-between">
+		<h2 class="text-primary-content text-2xl font-bold mb-4 shrink">Your Groups</h2>
+		<!-- search field -->
+		<label class="input">
+		  <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+		    <g
+		      stroke-linejoin="round"
+		      stroke-linecap="round"
+		      stroke-width="2.5"
+		      fill="none"
+		      stroke="currentColor"
+		    >
+		      <circle cx="11" cy="11" r="8"></circle>
+		      <path d="m21 21-4.3-4.3"></path>
+		    </g>
+		  </svg>
+		  <input type="search" required placeholder="Enter group name to search"
+		         name="q"
+		         hx-get="{% url 'notes:group_search_page' %}"
+			       hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
+			       hx-target="#group-list"
+		         hx-swap="innerHTML"
+			       hx-indicator=".htmx-indicator"
+		  />
+		</label>
+
+	</div>
+
+	<!-- actual group list display -->
+	<ul id="group-list" class="space-y-2">
+		{% for group in groups %}
+			{% include 'notes/partial_group_item.html' %}
+		{% endfor %}
+	</ul>
+</div>
+
+{% endblock main %}

@@ -1,0 +1,34 @@
+{% extends 'notes/dashboard_base.html' %}
+
+{% block main %}
+<!-- top navbar -->
+<div class="navbar bg-base-200">
+	<div class="navbar-start space-x-4">
+    <h1 class="text-primary text-2xl font-semibold ml-2">{{ note.title }}</h1>
+		<div class="divider divider-horizontal"></div>
+		<h2 class="text-secondary text-xl font-semibold">{{ note.group }}</h2>
+	</div>
+
+	<div class="navbar-end mr-2 space-x-4">
+		{#	TODO: toggle button acc to starred or not, also htmx view to toggle star	#}
+		<button class="btn btn-square btn-ghost">
+	    <svg xmlns="http://www.w3.org/2000/svg" fill="{{ note.is_starred|yesno:'currentColor,none' }}" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-[1.2em]">
+		    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+	    </svg>
+		</button>
+		<a href="{% url 'notes:note_edit_page' note.id %}" class="btn btn-secondary">Edit</a>
+	</div>
+</div>
+
+<!-- main body content -->
+<div class="p-2 max-w-full prose">
+	{# RENDERED MAIN CONTENT HERE	#}
+	{% if note.rendered_content %}
+		<!-- render as safe html -->
+		{{ note.rendered_content|safe }}
+	{% else %}
+		<p class="warning">Edit to add content...</p>
+	{% endif %}
+</div>
+
+{% endblock main %}

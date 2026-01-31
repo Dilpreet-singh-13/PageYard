@@ -1,0 +1,21 @@
+{%  extends 'notes/base.html' %}
+
+{% block main %}
+
+    <div class="hero bg-base-200 min-h-screen">
+      <div class="hero-content text-center">
+        <div class="max-w-md">
+          <h1 class="text-5xl font-bold">MyNotes</h1>
+          <p class="py-6">
+            The only place you need to keep your notes!
+          </p>
+          <button class="btn btn-primary">
+              <a href="{% url 'account_login' %}">
+                  Get Started
+              </a>
+          </button>
+        </div>
+      </div>
+    </div>
+
+{% endblock main %}

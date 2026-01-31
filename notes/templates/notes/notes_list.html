@@ -1,0 +1,15 @@
+{% extends 'notes/dashboard_base.html' %}
+
+{% block main %}
+<div class="container mx-auto p-2">
+
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-primary-content">All Notes</h1>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="notes-grid">
+      {% include 'notes/partial_notes_list.html' %}
+    </div>
+
+</div>
+{% endblock main %}

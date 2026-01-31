@@ -1,0 +1,72 @@
+{% extends 'notes/dashboard_base.html' %}
+
+{% block main %}
+<!-- main body content -->
+<div class="p-2 max-w-full">
+	{# RENDERED List of notes, starred, recent here	#}
+
+	<!-- TODO: ADD SEARCH HERE -->
+
+	<!-- recent notes -->
+	<section class="mb-10">
+    <h2 class="text-primary-content text-2xl font-bold mb-4 shrink">Continue Working</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+	    {% for note in recent_notes %}
+        <a href="{% url 'notes:note_detail_page' note.id %}"
+           class="group relative card bg-base-100 shadow-sm border border-base-200
+                  hover:border-primary hover:shadow-md transition-all">
+
+	        <div class="card-body p-4 flex flex-col h-full">
+
+            <div class="flex justify-between items-start w-full mb-1">
+	            <h3 class="card-title font-semibold truncate pr-4 text-base-content group-hover:text-primary">
+	                {{ note.title }}
+	            </h3>
+
+            <!-- TODO: change to is starred htmx endpoint -->
+              {% if note.is_starred %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-accent shrink-0">
+                  <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
+                </svg>
+              {% endif %}
+            </div>
+
+            <p class="text-xs text-base-content/60 line-clamp-2 leading-relaxed">
+              {% if note.raw_content %}
+                {{ note.raw_content }}
+              {% else %}
+                <span class="italic opacity-50">No content...</span>
+              {% endif %}
+            </p>
+
+            <div class="mt-auto flex items-center justify-between w-full pt-2">
+              {% if note.group %}
+                <span class="badge badge-sm text-xs opacity-80">
+                  {{ note.group.name }}
+                </span>
+              {% else %}
+                <span></span> {% endif %}
+
+              <span class="text-[10px] font-semibold opacity-40 tracking-wider">
+                {{ note.updated_at|timesince }} ago
+              </span>
+            </div>
+            </div>
+        </a>
+      {% empty %}
+        <div class="col-span-full py-10 flex flex-col items-center justify-center border-2 border-dashed border-base-300 rounded-xl text-base-content/50">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 mb-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+          </svg>
+          <span class="text-sm font-medium">No recent notes</span>
+          <a href="{% url 'notes:new_note_page' %}" class="my-2 text-sm font-medium ">Click here to start creating notes now!</a>
+        </div>
+      {% endfor %}
+    </div>
+	</section>
+
+	<!-- starred notes -->
+
+</div>
+{% endblock main %}
