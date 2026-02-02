@@ -5,8 +5,8 @@ notes/partial_group_item.html
 
 {% block main %}
 <!-- create new group section -->
-<div class="bg-base-200 rounded-xl p-4 shadow-lg">
-	<h2 class="text-primary-content text-2xl font-bold">Create new Group</h2>
+<div class="bg-base-200 rounded-xl p-4 shadow-md  hover:shadow-lg focus:shadow-lg">
+	<h2 class="text-base-content text-2xl font-bold">Create new Group</h2>
 	<form hx-post="{% url 'notes:group_create_page' %}"
 				hx-target="#group-list"
 				hx-swap="beforeend"
@@ -24,7 +24,7 @@ notes/partial_group_item.html
 		        class="btn btn-lg btn-soft btn-accent shrink-0">
 			Reset
 		</button>
-		<!-- !! gives clean bool value if editGroupId has any truthly value -->
+		<!-- adding !! gives clean bool value if editGroupId has any truthly value -->
 		<button type="submit"
 		        :disabled="!!$store.group_ui.editGroupId"
 						:class="$store.group_ui.editGroupId ? 'opacity-50 pointer-events-none' : ''"
@@ -38,7 +38,7 @@ notes/partial_group_item.html
 <!-- group list view -->
 <div class="p-4">
 	<div class="flex flex-row justify-between">
-		<h2 class="text-primary-content text-2xl font-bold mb-4 shrink">Your Groups</h2>
+		<h2 class="text-base-content text-2xl font-bold mb-4 shrink">Your Groups</h2>
 		<!-- search field -->
 		<label class="input">
 		  <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -59,7 +59,7 @@ notes/partial_group_item.html
 			       hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
 			       hx-target="#group-list"
 		         hx-swap="innerHTML"
-			       hx-indicator=".htmx-indicator"
+			       hx-indicator="#search-spinner"
 		  />
 		</label>
 
@@ -67,6 +67,7 @@ notes/partial_group_item.html
 
 	<!-- actual group list display -->
 	<ul id="group-list" class="space-y-2">
+		<span id="search-spinner" class="htmx-indicator hidden loading loading-spinner text-primary"></span>
 		{% for group in groups %}
 			{% include 'notes/partial_group_item.html' %}
 		{% endfor %}

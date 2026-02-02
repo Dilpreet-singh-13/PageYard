@@ -1,45 +1,7 @@
 {% for note in notes_list %}
-	<a href="{% url 'notes:note_detail_page' note.id %}"
-     class="group relative card bg-base-100 shadow-sm border border-base-200 hover:border-primary hover:shadow-md transition-all">
-
-    <div class="card-body p-4 flex flex-col h-full">
-
-      <div class="flex justify-between items-start w-full mb-1">
-        <h3 class="card-title font-semibold truncate pr-4 text-base-content group-hover:text-primary">
-            {{ note.title }}
-        </h3>
-
-      <!-- TODO: change to is starred htmx endpoint -->
-        {% if note.is_starred %}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-accent shrink-0">
-            <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
-          </svg>
-        {% endif %}
-      </div>
-
-      <p class="text-xs text-base-content/60 line-clamp-2 leading-relaxed">
-        {% if note.raw_content %}
-          {{ note.raw_content }}
-        {% else %}
-          <span class="italic opacity-50">No content...</span>
-        {% endif %}
-      </p>
-
-      <div class="mt-auto flex items-center justify-between w-full pt-2">
-        {% if note.group %}
-          <span class="badge badge-sm text-xs opacity-80">
-            {{ note.group.name }}
-          </span>
-        {% else %}
-          <span></span>
-        {% endif %}
-
-        <span class="text-[10px] font-semibold opacity-40 tracking-wider">
-          {{ note.updated_at|timesince }} ago
-        </span>
-      </div>
-    </div>
-  </a>
+	{% include 'notes/partial_note_item.html' with note=note %}
+{% empty %}
+	<span class="text-sm font-medium col-span-full">No notes found.</span>
 {% endfor %}
 
 {% if notes_list.has_next %}

@@ -1,0 +1,82 @@
+{% extends 'notes/dashboard_base.html' %}
+
+{% block main %}
+<!-- search & filter form -->
+<form hx-get="{% url 'notes:notes_search_page' %}"
+      hx-target="#search-notes-container"
+      hx-swap="innerHTML"
+      hx-trigger="submit, input changed delay:500ms, change delay:500ms, keyup[key=='Enter']"
+      hx-push-url="true"
+      hx-indicator="#search-spinner"
+			x-ref="searchForm"
+			class="w-full flex flex-col gap-4 bg-base-200 p-4 rounded-lg shadow-lg">
+
+	<!-- search + reset, submit button -->
+	<div class="w-full flex flex-col gap-2 sm:flex-row sm:gap-4">
+		<label class="floating-label flex-auto">
+		  <span class="">Search</span>
+		  <input type="text" name="q" placeholder="Type to start searching..."
+		         class="input input-primary shadow-sm w-full" />
+		</label>
+		<span id="search-spinner" class="htmx-indicator hidden loading loading-spinner text-primary"></span>
+		<!-- resets all the inputs & loads the default page items (no reload, just a htmx request to swap elements in DOM) -->
+		<button type="button"
+		        @click="$refs.searchForm.reset();
+										$nextTick(() => htmx.trigger($refs.searchForm, 'submit'));"
+		        class="btn btn-soft btn-accent shrink-0">
+			Reset
+		</button>
+
+		<button type="submit" class="btn btn-primary shrink-0">
+			Search
+		</button>
+	</div>
+
+	<div class="divider divider-start m-0">
+		<span class="text-md opacity-80">Filters</span>
+	</div>
+
+	<!-- filters -->
+	<div class="w-full flex flex-col gap-2 md:flex-row md:gap-4 md:justify-around">
+		<!-- start date -->
+		<label class="input input-sm border focus-within:border-primary-content focus-within:outline-none">
+			<span class="label">Updated After</span>
+			<input type="date" name="start_date" />
+		</label>
+		<!-- end date -->
+		<label class="input input-sm border focus-within:border-primary-content focus-within:outline-none">
+			<span class="label">Updated Before</span>
+			<input type="date" name="end_date" />
+		</label>
+		<!-- Group -->
+		<label class="select input-sm focus-within:border-primary-content focus-within:outline-none">
+		  <span class="label">Group</span>
+		  <select name="group">
+			  <option value="" selected >No Group</option>
+			  {% for group in user_groups %}
+				  <option value="{{ group.id }}">{{ group.name }}</option>
+			  {% endfor %}
+		  </select>
+		</label>
+		<!-- starred or not -->
+		<label class="label text-sm text-base-content">
+	    <input type="checkbox" name="is_starred" class="checkbox checkbox-sm" />
+	    Starred
+	  </label>
+
+		<!-- match title or full body -->
+		<label class="label text-sm text-base-content">
+	    <input type="checkbox" name="title_only" checked class="checkbox checkbox-sm" />
+	    Title Only
+	  </label>
+	</div>
+</form>
+
+<!-- search & filter results : notes list -->
+<div id="search-notes-container"
+     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 p-2">
+
+	{% include 'notes/partial_notes_list.html' %}
+</div>
+
+{% endblock main %}
