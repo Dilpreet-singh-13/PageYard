@@ -10,7 +10,7 @@ from .forms import NoteForm
 from .models import Note, Group
 
 
-# Create your views here.
+@login_required()
 def home_view(request):
     return render(request, 'notes/home_page.html')
 
@@ -54,7 +54,7 @@ def notes_list_view(request):
     # if request is sent by htmx, render the partial, otherwise render the full page
     # this replaces the "load more" div with the next 'n' notes from the paginator & adds a new load more button
     if request.htmx:
-        return render(request, 'notes/partial_notes_list.html', context)
+        return render(request, 'notes/partials/partial_notes_list.html', context)
 
     return render(request, 'notes/notes_list.html', context)
 
@@ -100,7 +100,7 @@ def notes_search_view(request):
         "notes_list": notes_page_obj
     }
     if request.htmx:
-        return render(request, 'notes/partial_notes_list.html', context)
+        return render(request, 'notes/partials/partial_notes_list.html', context)
 
     context["user_groups"] = user_groups  # only needed if normal GET request for full page
     return render(request, 'notes/notes_search.html', context)
@@ -165,12 +165,12 @@ def toggle_star_view(request, note_id: str):
     note.is_starred = not note.is_starred
     note.save()
 
-    return render(request, 'notes/partial_star_button.html', {"note": note})
+    return render(request, 'notes/partials/partial_star_button.html', {"note": note})
 
 
 @login_required()
 def group_list_view(request):
-    groups = Group.objects.filter(created_by=request.user)
+    groups = Group.objects.filter(created_by=request.user).order_by("name")
     context = {
         "groups": groups
     }
@@ -186,7 +186,7 @@ def group_create_view(request):
     context = {
         'group': group
     }
-    return render(request, 'notes/partial_group_item.html', context)
+    return render(request, 'notes/partials/partial_group_item.html', context)
 
 
 @login_required()
@@ -204,7 +204,7 @@ def group_edit_view(request, group_id: str):
     context = {
         "group": group
     }
-    return render(request, 'notes/partial_group_item.html', context)
+    return render(request, 'notes/partials/partial_group_item.html', context)
 
 
 @login_required()
@@ -227,4 +227,4 @@ def group_search_view(request):
     context = {
         "groups": groups
     }
-    return render(request, 'notes/partial_group_list.html', context)
+    return render(request, 'notes/partials/partial_group_list.html', context)

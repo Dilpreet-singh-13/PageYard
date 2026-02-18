@@ -1,82 +1,101 @@
 {% extends 'notes/dashboard_base.html' %}
 
 {% block main %}
-<!-- search & filter form -->
-<form hx-get="{% url 'notes:notes_search_page' %}"
-      hx-target="#search-notes-container"
-      hx-swap="innerHTML"
-      hx-trigger="submit, input changed delay:500ms, change delay:500ms, keyup[key=='Enter']"
-      hx-push-url="true"
-      hx-indicator="#search-spinner"
-			x-ref="searchForm"
-			class="w-full flex flex-col gap-4 bg-base-200 p-4 rounded-lg shadow-lg">
+<div class="w-full max-w-full mx-auto">
 
-	<!-- search + reset, submit button -->
-	<div class="w-full flex flex-col gap-2 sm:flex-row sm:gap-4">
-		<label class="floating-label flex-auto">
-		  <span class="">Search</span>
-		  <input type="text" name="q" placeholder="Type to start searching..."
-		         class="input input-primary shadow-sm w-full" />
-		</label>
-		<span id="search-spinner" class="htmx-indicator hidden loading loading-spinner text-primary"></span>
-		<!-- resets all the inputs & loads the default page items (no reload, just a htmx request to swap elements in DOM) -->
-		<button type="button"
-		        @click="$refs.searchForm.reset();
-										$nextTick(() => htmx.trigger($refs.searchForm, 'submit'));"
-		        class="btn btn-soft btn-accent shrink-0">
-			Reset
-		</button>
+  <div class="mb-8">
+    <h1 class="text-3xl font-extrabold tracking-tight text-base-content mb-2">Advanced Search</h1>
+    <p class="text-sm text-base-content/60">Filter by date, group, or specific keywords.</p>
+  </div>
 
-		<button type="submit" class="btn btn-primary shrink-0">
-			Search
-		</button>
-	</div>
+  <form hx-get="{% url 'notes:notes_search_page' %}"
+        hx-target="#search-notes-container"
+        hx-swap="innerHTML"
+        hx-trigger="submit, input changed delay:500ms, change delay:500ms, keyup[key=='Enter']"
+        hx-push-url="true"
+        hx-indicator="#search-spinner"
+        x-ref="searchForm"
+        class="w-full flex flex-col gap-6 bg-base-100 p-6 sm:p-8 rounded-3xl shadow-sm border border-base-200/80 relative">
 
-	<div class="divider divider-start m-0">
-		<span class="text-md opacity-80">Filters</span>
-	</div>
+    <div class="w-full flex flex-col md:flex-row gap-4">
 
-	<!-- filters -->
-	<div class="w-full flex flex-col gap-2 md:flex-row md:gap-4 md:justify-around">
-		<!-- start date -->
-		<label class="input input-sm border focus-within:border-primary-content focus-within:outline-none">
-			<span class="label">Updated After</span>
-			<input type="date" name="start_date" />
-		</label>
-		<!-- end date -->
-		<label class="input input-sm border focus-within:border-primary-content focus-within:outline-none">
-			<span class="label">Updated Before</span>
-			<input type="date" name="end_date" />
-		</label>
-		<!-- Group -->
-		<label class="select input-sm focus-within:border-primary-content focus-within:outline-none">
-		  <span class="label">Group</span>
-		  <select name="group">
-			  <option value="" selected >No Group</option>
-			  {% for group in user_groups %}
-				  <option value="{{ group.id }}">{{ group.name }}</option>
-			  {% endfor %}
-		  </select>
-		</label>
-		<!-- starred or not -->
-		<label class="label text-sm text-base-content">
-	    <input type="checkbox" name="is_starred" class="checkbox checkbox-sm" />
-	    Starred
-	  </label>
+      <div class="relative flex-auto group">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/40 group-focus-within:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input type="text" name="q" placeholder="Type to start searching..."
+               class="input input-lg w-full pl-11 bg-base-200/50 border-transparent focus:border-primary focus:outline-hidden transition-all rounded-2xl text-base" />
 
-		<!-- match title or full body -->
-		<label class="label text-sm text-base-content">
-	    <input type="checkbox" name="title_only" checked class="checkbox checkbox-sm" />
-	    Title Only
-	  </label>
-	</div>
-</form>
+        <span id="search-spinner" class="htmx-indicator loading loading-spinner loading-sm text-primary absolute right-4 top-1/2 -translate-y-1/2"></span>
+      </div>
 
-<!-- search & filter results : notes list -->
-<div id="search-notes-container"
-     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 p-2">
+      <div class="flex gap-2 shrink-0 justify-around">
+        <button type="button"
+                @click="$refs.searchForm.reset();
+                        $nextTick(() => htmx.trigger($refs.searchForm, 'submit'));"
+                class="btn btn-lg btn-ghost text-neutral/80 hover:bg-neutral-content rounded-2xl font-medium px-6">
+          Reset
+        </button>
 
-	{% include 'notes/partial_notes_list.html' %}
+        <button type="submit" class="btn btn-lg btn-primary shadow-lg shadow-primary/30 border-0 rounded-2xl px-8 text-primary-content font-bold">
+          Search
+        </button>
+      </div>
+    </div>
+
+    <div class="divider my-0 text-xs text-base-content/30 font-medium uppercase tracking-widest">Filters</div>
+		<!-- FILTERS -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+			<!-- date after filter -->
+      <label class="form-control w-full">
+        <div class="label pt-0 pb-1">
+          <span class="label-text text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Updated After</span>
+        </div>
+        <input type="date" name="start_date" class="input input-sm input-bordered bg-base-100 border-base-200 focus:border-primary focus:outline-hidden rounded-xl w-full" />
+      </label>
+			<!-- before date filter -->
+      <label class="form-control w-full">
+        <div class="label pt-0 pb-1">
+          <span class="label-text text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Updated Before</span>
+        </div>
+        <input type="date" name="end_date"
+               class="input input-sm input-bordered bg-base-100 border-base-200 focus:border-primary focus:outline-hidden rounded-xl w-full" />
+      </label>
+
+			<!-- group filter -->
+      <label class="form-control w-full col-span-2 sm:col-span-1">
+        <div class="label pt-0 pb-1">
+          <span class="label-text text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Group</span>
+        </div>
+        <select name="group" class="select select-sm select-bordered bg-base-100 border-base-200 focus:border-primary focus:outline-hidden rounded-xl w-full font-normal">
+          <option value="" selected>All Groups</option>
+          {% for group in user_groups %}
+            <option value="{{ group.id }}">{{ group.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+	    <!-- starred or not filter -->
+      <label class="cursor-pointer h-[2rem] flex items-center justify-between px-3 rounded-xl border border-base-200 hover:border-primary/50 hover:bg-base-200/30 transition-all bg-base-100">
+        <span class="label-text text-xs font-semibold text-base-content/80">Starred Only</span>
+        <input type="checkbox" name="is_starred" class="checkbox checkbox-xs checkbox-warning rounded-sm" />
+      </label>
+
+      <!-- search title only or body too filter -->
+      <label class="cursor-pointer h-[2rem] flex items-center justify-between px-3 rounded-xl border border-base-200 hover:border-primary/50 hover:bg-base-200/30 transition-all bg-base-100">
+        <span class="label-text text-xs font-semibold text-base-content/80">Title Match</span>
+        <input type="checkbox" name="title_only" checked class="checkbox checkbox-xs checkbox-primary rounded-sm" />
+      </label>
+
+    </div>
+  </form>
+
+  <div id="search-notes-container"
+       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-8">
+    {% include 'notes/partials/partial_notes_list.html' %}
+  </div>
+
 </div>
-
 {% endblock main %}

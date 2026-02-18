@@ -39,15 +39,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # custom apps
     'accounts',
+    "notes",
+    # allauth ui for views
+    "allauth_ui",
     # aullauth apps
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    "widget_tweaks",
+    "slippers",
     "django_htmx",
-    # custom apps
-    "notes",
 ]
 
 MIDDLEWARE = [
@@ -179,3 +183,6 @@ LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/accounts/login/"
 LOGOUT_URL = "accounts/logout"
+
+# default UI theme for allauth
+ALLAUTH_UI_THEME = "lemonade"

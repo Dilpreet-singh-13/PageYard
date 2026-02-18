@@ -1,0 +1,25 @@
+{% for note in notes_list %}
+	{% include 'notes/partials/partial_note_item.html' with note=note %}
+{% empty %}
+	<div class="col-span-full py-12 flex flex-col items-center justify-center border border-dashed border-base-300 rounded-3xl bg-base-100/50 text-base-content/50">
+		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 mb-3 opacity-50">
+		  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+		</svg>
+		<span class="text-base font-semibold">No notes found</span>
+		<span class="text-sm opacity-70">Try adjusting your filters or create a new one.</span>
+	</div>
+{% endfor %}
+
+{% if notes_list.has_next %}
+	<div class="col-span-full flex justify-center py-10" id="load-more-container">
+
+    <button class="btn btn-wide rounded-full btn-ghost bg-base-100 shadow-sm border border-base-300 hover:border-primary hover:text-primary transition-all"
+            hx-get="{% url 'notes:all_notes_view' %}?page={{ notes_list.next_page_number }}"
+            hx-target="#load-more-container"
+            hx-swap="outerHTML"
+            hx-indicator="#loading-spinner">
+      Load More Notes
+    </button>
+    <span id="loading-spinner" class="loading loading-spinner text-primary htmx-indicator ml-3"></span>
+  </div>
+{% endif %}

@@ -10,156 +10,171 @@
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-	<!-- alpine global store init -->
 	<script>
 		document.addEventListener('alpine:init', () => {
 			Alpine.store('group_ui', {
           editGroupId: null,
 					start_edit(id) {this.editGroupId = id;},
 					stop_edit() {this.editGroupId = null;}
-			}) // stores the id of the group list row being edited
+			})
 		});
 	</script>
 
 	{% htmx_script %}
 </head>
-<body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
-<div x-data="{ showSidebar: false, menuIsOpen: false }" class="relative flex w-full flex-col md:flex-row">
+<body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}' class="antialiased selection:bg-primary selection:text-primary-content">
+<div x-data="{ showSidebar: false, menuIsOpen: false }" class="relative flex w-full flex-col md:flex-row h-svh overflow-hidden">
   <a class="sr-only" href="#main-content">skip to the main content</a>
 
   <div x-cloak x-show="showSidebar"
-       class="fixed inset-0 z-10 bg-neutral/50 backdrop-blur-sm md:hidden"
+       class="fixed inset-0 z-20 bg-neutral/20 backdrop-blur-md md:hidden"
        aria-hidden="true" x-on:click="showSidebar = false" x-transition.opacity></div>
 
   <nav x-cloak
-       class="fixed left-0 z-20 flex h-svh w-60 shrink-0 flex-col border-r border-base-300 bg-base-200 p-4 transition-transform duration-300 md:w-64 md:translate-x-0 md:relative"
-       x-bind:class="showSidebar ? 'translate-x-0' : '-translate-x-60'" aria-label="sidebar navigation">
+       class="fixed left-0 z-30 flex h-full w-64 shrink-0 flex-col border-r border-base-200 bg-base-100 p-5 transition-transform duration-300 md:translate-x-0 md:relative shadow-xl md:shadow-none"
+       x-bind:class="showSidebar ? 'translate-x-0' : '-translate-x-64'" aria-label="sidebar navigation">
 
     <a href="{% url 'notes:home' %}"
-       class="ml-2 my-2 w-fit text-2xl font-bold text-base-content">
-      <span class="text-primary">MyNotes</span>
+       class="mb-6 flex items-center gap-2 px-2">
+       <span class="text-2xl font-black tracking-tighter text-base-content">
+        My<span class="text-primary">Notes</span>
+      </span>
     </a>
 
-    <!-- Search -->
-	  <form action="{% url 'notes:notes_search_page' %}" method="get">
-    <label class="input input-bordered input-secondary flex items-center gap-2 mb-4 bg-base-100">
-      <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.3-4.3"></path>
-        </g>
-      </svg>
-      <input type="search" name="q" class="grow" required placeholder="Search"/>
-    </label>
-	  </form>
-		<!-- Sidebar items/links -->
-    <div class="flex flex-col gap-2 overflow-y-auto pb-6">
+    <form action="{% url 'notes:notes_search_page' %}" method="get" class="mb-6">
+		  <label class="input input-sm h-10 flex items-center gap-2 bg-base-200/50 border border-transparent focus-within:border-secondary focus-within:outline-none focus-within:bg-base-100 transition-all rounded-xl">
+		    <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+		      <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+		        <circle cx="11" cy="11" r="8"></circle>
+		        <path d="m21 21-4.3-4.3"></path>
+		      </g>
+		    </svg>
+		    <input type="search" name="q" class="grow placeholder:text-base-content/40 text-sm focus:outline-none border-none bg-transparent focus:ring-0" required placeholder="Quick search..."/>
+		  </label>
+		</form>
+
+   <div class="flex flex-col gap-1 overflow-y-auto pb-6 grow">
       <a href="{% url 'notes:dashboard' %}"
-       class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 focus-visible:underline focus:outline-hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5 shrink-0"
-             aria-hidden="true">
-          <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-1ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9A1.5 1.5 0 0 0 9.5 18h1a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 10.5 6h-1ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5A1.5 1.5 0 0 0 3.5 18h1A1.5 1.5 0 0 0 6 16.5v-5A1.5 1.5 0 0 0 4.5 10h-1Z"/>
+       class="group flex items-center rounded-xl gap-3 px-3 py-2.5 text-sm font-semibold text-base-content/80 transition-all hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus:outline-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0 transition-colors group-hover:text-primary" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
         </svg>
         <span>Home</span>
       </a>
 
-	    <a href="{% url 'notes:all_notes_view' %}"
-         class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 focus-visible:underline focus:outline-hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5 shrink-0"
-             aria-hidden="true">
-          <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-1ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9A1.5 1.5 0 0 0 9.5 18h1a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 10.5 6h-1ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5A1.5 1.5 0 0 0 3.5 18h1A1.5 1.5 0 0 0 6 16.5v-5A1.5 1.5 0 0 0 4.5 10h-1Z"/>
+      <a href="{% url 'notes:all_notes_view' %}"
+         class="group flex items-center rounded-xl gap-3 px-3 py-2.5 text-sm font-semibold text-base-content/80 transition-all hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus:outline-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0 transition-colors group-hover:text-primary" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
         </svg>
         <span>All Notes</span>
       </a>
 
-	    <a href="{% url 'notes:notes_search_page' %}"
-         class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 focus-visible:underline focus:outline-hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5 shrink-0"
-             aria-hidden="true">
-          <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-1ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9A1.5 1.5 0 0 0 9.5 18h1a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 10.5 6h-1ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5A1.5 1.5 0 0 0 3.5 18h1A1.5 1.5 0 0 0 6 16.5v-5A1.5 1.5 0 0 0 4.5 10h-1Z"/>
+      <a href="{% url 'notes:notes_search_page' %}"
+         class="group flex items-center rounded-xl gap-3 px-3 py-2.5 text-sm font-semibold text-base-content/80 transition-all hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus:outline-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0 transition-colors group-hover:text-primary" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
         </svg>
         <span>Advance Search</span>
       </a>
 
       <a href="{% url 'notes:group_list_page' %}"
-         class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 focus-visible:underline focus:outline-hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5 shrink-0"
-             aria-hidden="true">
-          <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-1ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9A1.5 1.5 0 0 0 9.5 18h1a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 10.5 6h-1ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5A1.5 1.5 0 0 0 3.5 18h1A1.5 1.5 0 0 0 6 16.5v-5A1.5 1.5 0 0 0 4.5 10h-1Z"/>
+         class="group flex items-center rounded-xl gap-3 px-3 py-2.5 text-sm font-semibold text-base-content/80 transition-all hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus:outline-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0 transition-colors group-hover:text-primary" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
         </svg>
         <span>Manage Groups</span>
       </a>
-			<!-- Collapseable Menu -->
-      <div x-data="{ isExpanded: false }" class="flex flex-col">
-        <button type="button" x-on:click="isExpanded = ! isExpanded"
-                class="flex items-center justify-between rounded-lg gap-2 px-2 py-1.5 text-sm font-medium underline-offset-2 focus:outline-hidden focus-visible:underline transition-colors hover:bg-base-300">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-               class="size-5 shrink-0">
-            <path d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.615 16.428a1.224 1.224 0 0 1-.569-1.175 6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572ZM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755 4.502 4.502 0 0 1 5.874 2.636.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16Z"/>
+
+			<!-- dropdown menu inside sidebar, not used currently -->
+{#    <div x-data="{ isExpanded: false }" class="flex flex-col">#}
+{#        <button type="button" x-on:click="isExpanded = ! isExpanded"#}
+{#                class="group flex items-center justify-between rounded-xl gap-3 px-3 py-2.5 text-sm font-semibold text-base-content/80 transition-all hover:bg-primary/10 hover:text-primary focus:outline-hidden">#}
+{#          <div class="flex items-center gap-3">#}
+{#             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"#}
+{#               class="size-5 shrink-0 transition-colors group-hover:text-primary">#}
+{#              <path d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.615 16.428a1.224 1.224 0 0 1-.569-1.175 6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572ZM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755 4.502 4.502 0 0 1 5.874 2.636.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16Z"/>#}
+{#            </svg>#}
+{#            <span class="text-left">Starred</span>#}
+{#          </div>#}
+{#          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"#}
+{#               class="size-5 transition-transform shrink-0 opacity-50 group-hover:opacity-100"#}
+{#               x-bind:class="isExpanded ? 'rotate-180' : 'rotate-0'">#}
+{#            <path fill-rule="evenodd"#}
+{#                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"#}
+{#                  clip-rule="evenodd"/>#}
+{#          </svg>#}
+{#        </button>#}
+{##}
+{#        <ul x-cloak x-collapse x-show="isExpanded" class="pl-8 mt-1 space-y-1 border-l-2 border-base-200 ml-5">#}
+{#          <li>#}
+{#            <a href="#"#}
+{#               class="block rounded-lg py-1.5 text-sm text-base-content/70 hover:text-primary hover:bg-base-200/50 transition-colors">Users</a>#}
+{#          </li>#}
+{#          <li>#}
+{#            <a href="#"#}
+{#               class="block rounded-lg py-1.5 text-sm text-base-content/70 hover:text-primary hover:bg-base-200/50 transition-colors">Permissions</a>#}
+{#          </li>#}
+{#          <li>#}
+{#            <a href="#"#}
+{#               class="block rounded-lgpy-1.5 text-sm text-base-content/70 hover:text-primary hover:bg-base-200/50 transition-colors">#}
+{#              Activity Log#}
+{#            </a>#}
+{#          </li>#}
+{#        </ul>#}
+{#      </div>#}
+
+      <div class="mt-4">
+        <a href="{% url 'notes:new_note_page' %}" class="btn btn-primary w-full text-primary-content shadow-lg shadow-primary/30 border-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+            <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
           </svg>
-          <span class="mr-auto text-left">Starred</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-               class="size-5 transition-transform shrink-0"
-               x-bind:class="isExpanded ? 'rotate-180' : 'rotate-0'">
-            <path fill-rule="evenodd"
-                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                  clip-rule="evenodd"/>
-          </svg>
-        </button>
-
-        <ul x-cloak x-collapse x-show="isExpanded">
-
-          <li class="px-1 py-0.5 first:mt-2">
-            <a href="#"
-               class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm text-base-content hover:bg-base-300">Users</a>
-          </li>
-          <li class="px-1 py-0.5">
-            <a href="#"
-               class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm text-base-content hover:bg-base-300">Permissions</a>
-          </li>
-          <li class="px-1 py-0.5">
-            <a href="#"
-               class="flex items-center rounded-lg gap-2 px-2 py-1.5 text-sm text-base-content hover:bg-base-300">
-              Activity Log
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="mt-2 space-y-2">
-        <a href="{% url 'notes:new_note_page' %}" class="btn btn-primary w-full text-primary-content">Create New Note</a>
-	      <!-- TODO: create group button -->
+          Create Note
+        </a>
       </div>
     </div>
 
-      <button type="button"
-              class="mt-auto flex w-full items-center rounded-lg gap-2 p-2 text-left text-base-content hover:bg-base-300 focus-visible:outline-primary"
-              x-bind:class="menuIsOpen ? 'bg-base-300' : ''"
-              x-on:click="menuIsOpen = ! menuIsOpen">
-        <img src="https://penguinui.s3.amazonaws.com/component-assets/avatar-7.webp"
-             class="size-8 object-cover rounded-full" alt="avatar"/>
+      <div class="pt-3 border-t border-base-200">
+			  <a href="{% url 'accounts:profile' %}"
+			  class="group flex w-full items-center rounded-xl gap-2.5 p-1.5 text-left hover:bg-base-200 transition-colors focus-visible:outline-primary"
+			     x-bind:class="menuIsOpen ? 'bg-base-200' : ''"
+			     x-on:click="menuIsOpen = ! menuIsOpen">
 
-        <div class="flex flex-col">
-          <span class="text-sm font-bold">Alex Martinez</span>
-          <span class="w-32 overflow-hidden text-ellipsis text-xs md:w-36 opacity-70">@alexmartinez</span>
-        </div>
-      </button>
+			    <div class="w-8 h-8 rounded-full bg-base-300 text-base-100 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+			      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+			        <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
+			      </svg>
+			    </div>
+
+			    <div class="flex flex-col grow">
+			      <span class="text-sm font-bold text-base-content group-hover:text-primary transition-colors truncate max-w-[140px]">{{ user.username|default:"Profile" }}</span>
+			      <span class="text-[10px] opacity-60 truncate max-w-[140px]">Account Settings</span>
+			    </div>
+			  </a>
+			</div>
   </nav>
-	{#	main-content id added for screen reader	#}
-  <div id="main-content" class="h-svh w-full overflow-y-auto p-4 bg-base-100 text-base-content">
-      {% block main %}
-      {% endblock main %}
+
+  {# main-content id added for screen reader  #}
+  <div id="main-content" class="h-full w-full overflow-y-auto bg-base-200/60 p-4 md:p-8 text-base-content">
+      <div class="mx-auto max-w-7xl h-full">
+
+        {% include 'notes/partials/toast.html' %}
+
+        {% block main %}
+        {% endblock main %}
+      </div>
   </div>
-	{# Sidebar toggle button for mobile #}
+
+  {# Sidebar toggle button for mobile #}
   <button x-cloak
-          class="fixed right-4 bottom-4 z-20 btn btn-circle btn-primary text-primary-content md:hidden shadow-lg"
+          class="fixed right-4 bottom-4 z-40 btn btn-circle btn-primary text-primary-content md:hidden shadow-xl shadow-primary/40 border-0"
           x-on:click="showSidebar = ! showSidebar">
     <svg x-show="showSidebar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
-         class="size-5">
+         class="size-6">
       <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
     </svg>
     <svg x-show="! showSidebar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
-         class="size-5">
+         class="size-6">
       <path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5-1v12h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zM4 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h2z"/>
     </svg>
     <span class="sr-only">sidebar toggle</span>

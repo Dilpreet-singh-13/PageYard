@@ -1,0 +1,129 @@
+{% load django_htmx %}
+{% load account %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile | MyNotes</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% htmx_script %}
+</head>
+
+<body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}' class="antialiased bg-base-200/60 min-h-screen text-base-content selection:bg-primary selection:text-primary-content flex flex-col">
+
+<header class="w-full bg-base-100 border-b border-base-200/80 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-3xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+        <a href="{% url 'notes:home' %}" class="text-2xl font-black tracking-tighter text-base-content hover:opacity-80 transition-opacity">
+            My<span class="text-primary">Notes</span>
+        </a>
+
+        <a href="{% url 'notes:dashboard' %}" class="btn btn-sm btn-ghost rounded-xl font-medium text-base-content/70 hover:text-primary hover:bg-primary/10 transition-colors gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+            </svg>
+            <span class="hidden sm:inline">Back to Dashboard</span>
+            <span class="sm:hidden">Back</span>
+        </a>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto w-full px-4 py-8 md:py-12 space-y-8 flex-grow">
+
+    <div>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-base-content">Your Profile</h1>
+        <p class="text-base-content/60 mt-2 text-sm md:text-base">Manage your account settings, preferences, and security.</p>
+    </div>
+
+    <div class="card bg-base-100 rounded-3xl shadow-sm border border-base-200/80">
+        <div class="card-body p-6 md:p-8">
+            <h2 class="text-xs font-bold border-b border-base-200/50 pb-3 mb-5 uppercase tracking-widest text-base-content/50">Account Information</h2>
+
+            <div class="space-y-6 w-full min-w-0">
+		            <div class="w-full min-w-0">
+		              <span class="block text-[10px] font-bold text-base-content/40 uppercase tracking-wider mb-1">
+		                Primary Email
+		              </span>
+		              <div class="flex items-center gap-3 w-full min-w-0">
+		                <span class="text-lg md:text-xl font-bold text-primary break-all">
+		                  {% user_display user %}
+		                </span>
+		              </div>
+		          </div>
+
+					    <div>
+					        <span class="block text-[10px] font-bold text-base-content/40 uppercase tracking-wider mb-1">
+					          Member Since
+					        </span>
+					        <span class="text-sm font-medium text-base-content/80">{{ user.date_joined|date:"F j, Y" }}</span>
+					    </div>
+						</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 md:gap-6">
+        <div class="card bg-base-100 rounded-3xl shadow-sm border border-base-200/80 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 transition-all duration-300">
+            <div class="card-body p-6 items-center text-center">
+                <span class="text-4xl md:text-5xl font-black text-primary tracking-tighter">{{ note_count|default:"0" }}</span>
+                <span class="text-xs uppercase tracking-widest text-base-content/50 font-bold mt-1">Total Notes</span>
+            </div>
+        </div>
+        <div class="card bg-base-100 rounded-3xl shadow-sm border border-base-200/80 hover:-translate-y-1 hover:shadow-md hover:border-secondary/30 transition-all duration-300">
+            <div class="card-body p-6 items-center text-center">
+                <span class="text-4xl md:text-5xl font-black text-secondary tracking-tighter">{{ group_count|default:"0" }}</span>
+                <span class="text-xs uppercase tracking-widest text-base-content/50 font-bold mt-1">Total Groups</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 rounded-3xl shadow-sm border border-base-200/80">
+        <div class="card-body p-6 md:p-8">
+            <h2 class="text-xs font-bold border-b border-base-200/50 pb-3 mb-5 uppercase tracking-widest text-base-content/50">Security & Authentication</h2>
+
+            <div class="flex flex-col gap-3">
+                <a href="{% url 'account_email' %}" class="group flex items-center justify-between p-4 rounded-2xl border border-base-200 hover:border-primary/50 hover:bg-base-200/30 transition-all bg-base-100">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-base-200 rounded-lg text-base-content/60 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+                        </div>
+                        <span class="font-semibold text-base-content/80 group-hover:text-primary transition-colors text-sm md:text-base">Manage Email Addresses</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                </a>
+
+                <a href="{% url 'account_change_password' %}" class="group flex items-center justify-between p-4 rounded-2xl border border-base-200 hover:border-primary/50 hover:bg-base-200/30 transition-all bg-base-100">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-base-200 rounded-lg text-base-content/60 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                        </div>
+                        <span class="font-semibold text-base-content/80 group-hover:text-primary transition-colors text-sm md:text-base">Change Password</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-error/20 rounded-3xl border border-error/20 mt-12 overflow-hidden">
+        <div class="card-body p-6 md:p-8">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-error mb-2">Danger Zone</h2>
+
+            <div class="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+                <p class="text-sm text-base-content/70 leading-relaxed max-w-md">
+                    Once you delete your account, there is no going back. All of your notes, groups, and personal data will be permanently erased. Please be certain.
+                </p>
+                <div class="w-full md:w-auto shrink-0">
+                    <button hx-delete="{% url 'accounts:delete-account' %}"
+                            hx-confirm="Are you sure you want to delete the user: '{% user_display user %}'? This action cannot be undone."
+                            class="btn btn-error w-full md:w-auto text-error-content shadow-sm shadow-error/20 rounded-xl font-bold border-0">
+                        Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

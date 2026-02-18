@@ -1,77 +1,68 @@
-<!-- USES TEMPLATES:
-notes/partial_group_item.html
--->
 {% extends 'notes/dashboard_base.html' %}
 
 {% block main %}
-<!-- create new group section -->
-<div class="bg-base-200 rounded-xl p-4 shadow-md  hover:shadow-lg focus:shadow-lg">
-	<h2 class="text-base-content text-2xl font-bold">Create new Group</h2>
-	<form hx-post="{% url 'notes:group_create_page' %}"
-				hx-target="#group-list"
-				hx-swap="beforeend"
-				hx-on::after-request="this.reset()"
-	      x-ref="nameInputForm"
-				class="flex items-end mt-4 gap-4">
-		{% csrf_token %}
-		<label class="floating-label flex-1">
-		  <span class="">Group Name</span>
-		  <input type="text" name="name" required placeholder="Enter group name" class="input input-lg input-primary w-full" />
-		</label>
+<div class="w-full h-full flex flex-col gap-6">
 
-		<button type="button"
-		        @click="$refs.nameInputForm.reset()"
-		        class="btn btn-lg btn-soft btn-accent shrink-0">
-			Reset
-		</button>
-		<!-- adding !! gives clean bool value if editGroupId has any truthly value -->
-		<button type="submit"
-		        :disabled="!!$store.group_ui.editGroupId"
-						:class="$store.group_ui.editGroupId ? 'opacity-50 pointer-events-none' : ''"
-		        class="btn btn-lg btn-primary shrink-0">
-			Create new Group
-		</button>
+  <div class="shrink-0">
+    <div class="flex flex-col gap-1 mb-6">
+      <h1 class="text-3xl font-extrabold tracking-tight text-base-content">Groups</h1>
+      <p class="text-sm text-base-content/60">Organize your notes into dedicated spaces.</p>
+    </div>
 
-	</form>
+	  <form hx-post="{% url 'notes:group_create_page' %}"
+          hx-target="#group-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="this.reset()"
+          x-ref="nameInputForm"
+          class="flex items-center w-full gap-4 bg-base-100 rounded-3xl p-2 pl-6 shadow-sm border border-base-200/80 flex items-center gap-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+      {% csrf_token %}
+
+      <div class="flex-1 min-w-0 py-2">
+        <label class="sr-only">Group Name</label>
+        <input type="text" name="name" required placeholder="Name your new group..."
+               class="w-full bg-transparent border-none hover:ring-0 hover:outline-none focus:ring-0 focus:outline-none p-0 text-lg font-medium placeholder:text-base-content/30 focus:ring-0 text-base-content" />
+      </div>
+
+      <button type="submit"
+              :disabled="!!$store.group_ui.editGroupId"
+              :class="$store.group_ui.editGroupId ? 'opacity-50 pointer-events-none' : ''"
+              class="btn btn-primary rounded-2xl px-8 shadow-lg shadow-primary/30 border-0 text-primary-content">
+        Create Group
+      </button>
+    </form>
+  </div>
+
+  <div class="bg-base-100 rounded-3xl shadow-sm border border-base-200/80 flex flex-col grow overflow-hidden relative">
+
+    <div class="p-4 border-b border-base-200/50 bg-base-100 z-10">
+      <div class="relative group">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-base-content/30 group-focus-within:text-primary transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+        </div>
+        <input type="search" required placeholder="Search your groups..."
+               name="q"
+               hx-get="{% url 'notes:group_search_page' %}"
+               hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
+               hx-target="#group-list"
+               hx-swap="innerHTML"
+               hx-indicator="#search-spinner"
+               class="input w-full pl-10 bg-base-200/40 border-transparent focus:bg-base-200/70 focus:border-transparent focus:outline-hidden rounded-xl transition-all"
+        />
+        <span id="search-spinner" class="htmx-indicator absolute right-3 top-1/2 -translate-y-1/2 loading loading-spinner loading-xs text-primary"></span>
+      </div>
+    </div>
+
+    <div class="overflow-y-auto grow p-2 sm:p-4 bg-base-100 scrollbar-thin scrollbar-thumb-base-300 scrollbar-track-transparent">
+      <ul id="group-list" class="flex flex-col gap-2">
+        {% for group in groups %}
+          {% include 'notes/partials/partial_group_item.html' %}
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
 </div>
-
-<!-- group list view -->
-<div class="p-4">
-	<div class="flex flex-row justify-between">
-		<h2 class="text-base-content text-2xl font-bold mb-4 shrink">Your Groups</h2>
-		<!-- search field -->
-		<label class="input">
-		  <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-		    <g
-		      stroke-linejoin="round"
-		      stroke-linecap="round"
-		      stroke-width="2.5"
-		      fill="none"
-		      stroke="currentColor"
-		    >
-		      <circle cx="11" cy="11" r="8"></circle>
-		      <path d="m21 21-4.3-4.3"></path>
-		    </g>
-		  </svg>
-		  <input type="search" required placeholder="Enter group name to search"
-		         name="q"
-		         hx-get="{% url 'notes:group_search_page' %}"
-			       hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
-			       hx-target="#group-list"
-		         hx-swap="innerHTML"
-			       hx-indicator="#search-spinner"
-		  />
-		</label>
-
-	</div>
-
-	<!-- actual group list display -->
-	<ul id="group-list" class="space-y-2">
-		<span id="search-spinner" class="htmx-indicator hidden loading loading-spinner text-primary"></span>
-		{% for group in groups %}
-			{% include 'notes/partial_group_item.html' %}
-		{% endfor %}
-	</ul>
-</div>
-
 {% endblock main %}
