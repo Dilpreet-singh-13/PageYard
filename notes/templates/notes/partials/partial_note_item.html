@@ -1,38 +1,50 @@
-<a href="{% url 'notes:note_detail_page' note.id %}"
-   class="group relative card bg-base-100 shadow-sm border border-base-200/80 hover:border-primary hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 rounded-2xl h-full">
-	<div class="card-body p-5 flex flex-col h-full">
-		<div class="flex justify-between items-start w-full mb-2 gap-3">
-			<h3 class="card-title text-lg min-w-0 font-bold truncate text-base-content group-hover:text-primary transition-colors tracking-tight">
-				{{ note.title }}
-			</h3>
+<a
+  href="{% url 'notes:note_detail_page' note.id %}"
+  class="group relative card bg-base-100 shadow-sm border border-base-200/80 hover:border-primary hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 rounded-2xl h-full overflow-hidden"
+>
+  <div class="card-body p-5 flex flex-col h-full min-w-0">
+    <div class="flex justify-between items-start w-full mb-2 gap-3">
+      <h3
+        class="card-title text-lg min-w-0 font-bold text-base-content group-hover:text-primary transition-colors tracking-tight line-clamp-2"
+      >
+        {{ note.title }}
+      </h3>
 
-			<div class="shrink-0 pt-0.5">
-				{% include 'notes/partials/partial_star_button.html' with note=note %}
-			</div>
-		</div>
+      <div class="shrink-0 pt-0.5">
+        {% include 'notes/partials/partial_star_button.html' with note=note %}
+      </div>
+    </div>
 
-		<p class="text-sm text-base-content/60 line-clamp-3 leading-relaxed mb-4 grow">
-			{% if note.raw_content %}
-				{{ note.raw_content }}
-			{% else %}
-				<span class="italic opacity-40">No additional content...</span>
-			{% endif %}
-		</p>
+    <p
+      class="text-sm text-base-content/60 line-clamp-3 leading-relaxed mb-4 grow"
+    >
+      {% if note.raw_content %} {{ note.raw_content }} {% else %}
+      <span class="italic opacity-40">No additional content...</span>
+      {% endif %}
+    </p>
 
-		<div class="mt-auto flex items-center justify-between w-full pt-3 border-t border-base-100 group-hover:border-base-200/50 transition-colors gap-2 min-w-0">
-			{% if note.group %}
-				<span class="badge bg-base-200 border-0 h-auto py-1 px-2.5 rounded-lg inline-flex items-center min-w-0 overflow-hidden">
-					<span class="truncate text-xs font-medium text-base-content/70">
-						{{ note.group.name }}
-					</span>
-				</span>
-			{% else %}
-				<span class="text-[10px] text-base-content/30 italic min-w-0">Uncategorized</span>
-			{% endif %}
+    <div
+      class="mt-auto flex items-center justify-between w-full pt-3 border-t border-base-100 group-hover:border-base-200/50 transition-colors gap-2 min-w-0"
+    >
+      {% if note.group %}
+      <span
+        class="badge bg-secondary/10 text-secondary border-0 h-auto py-1 px-2.5 rounded-lg inline-flex items-center min-w-0 overflow-hidden max-w-[60%]"
+      >
+        <span class="truncate text-xs font-medium">
+          {{ note.group.name }}
+        </span>
+      </span>
+      {% else %}
+      <span class="text-[10px] text-base-content/30 italic min-w-0"
+        >Uncategorized</span
+      >
+      {% endif %}
 
-			<span class="text-[10px] shrink-0 font-medium opacity-40 uppercase tracking-widest whitespace-nowrap">
-				{{ note.updated_at|timesince }} ago
-			</span>
-		</div>
-	</div>
+      <span
+        class="text-[10px] shrink-0 font-medium opacity-40 uppercase tracking-widest whitespace-nowrap"
+      >
+        {{ note.updated_at|timesince }} ago
+      </span>
+    </div>
+  </div>
 </a>

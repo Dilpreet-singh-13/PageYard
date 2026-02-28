@@ -1,18 +1,22 @@
-{% extends 'notes/dashboard_base.html' %}
-
+{% extends 'notes/dashboard_base.html' %} 
 {% block main %}
-<div class="w-full">
-
-  <div class="flex justify-between items-end mb-8 border-b border-base-content/5 pb-4">
+<section class="w-full">
+  <header
+    class="flex justify-between items-end mb-8 border-b border-base-content/5 pb-4"
+  >
     <div>
-      <h1 class="text-3xl font-extrabold tracking-tight text-base-content">All Notes</h1>
-      <p class="text-sm text-base-content/60 mt-1">Manage and organize your personal knowledge base.</p>
+      <h1 class="text-3xl font-extrabold tracking-tight text-base-content">
+        All Notes
+      </h1>
+      <p class="text-sm text-base-content/60 mt-1">
+        Manage and organize your personal knowledge base.
+      </p>
     </div>
-  </div>
+  </header>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="notes-grid">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+        id="notes-grid">
     {% include 'notes/partials/partial_notes_list.html' %}
   </div>
-
-</div>
+</section>
 {% endblock main %}

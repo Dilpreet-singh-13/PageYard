@@ -1,3 +1,6 @@
+import logging
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -9,6 +12,8 @@ from django.views.decorators.http import require_http_methods
 from .forms import NoteForm
 from .models import Note, Group
 
+logger = logging.getLogger(__name__)
+
 
 @login_required()
 def home_view(request):
@@ -18,8 +23,9 @@ def home_view(request):
 @login_required()
 def dashboard_view(request):
     recent_notes = Note.objects.filter(created_by=request.user).select_related('group').order_by('-updated_at')[:8]
-    starred_notes = Note.objects.filter(created_by=request.user, is_starred=True).select_related('group').order_by(
-        '-updated_at')[:8]
+    starred_notes = Note.objects.filter(created_by=request.user, is_starred=True) \
+                                .select_related('group') \
+                                .order_by('-updated_at')[:8]
 
     # we extract 8 notes per group FOR all groups
     groups = Group.objects.filter(created_by=request.user).distinct()
@@ -40,8 +46,8 @@ def dashboard_view(request):
 @login_required()
 def notes_list_view(request):
     notes_queryset = Note.objects.filter(created_by=request.user) \
-        .select_related('group') \
-        .order_by('-updated_at')
+                                .select_related('group') \
+                                .order_by('-updated_at')
 
     # show 8 notes per page
     paginator = Paginator(notes_queryset, 8)
@@ -61,13 +67,8 @@ def notes_list_view(request):
 
 @login_required()
 def notes_search_view(request):
-    # TODO: see if we can optimise the initial loading of all notes objects, instead only load for a specific filter
-    # but we would have to handle normal page loading too so yeah...
-
-    user_groups = Group.objects.filter(created_by=request.user)
     user_notes = Note.objects.filter(created_by=request.user).select_related('group').order_by("-updated_at")
 
-    # use search query & apply filters
     q = request.GET.get('q', '').strip()
     group_id = request.GET.get('group')
     is_starred = request.GET.get('is_starred')
@@ -93,16 +94,14 @@ def notes_search_view(request):
         user_notes = user_notes.filter(updated_at__date__lte=end_date)
 
     paginator = Paginator(user_notes, 16)
-    page_numer = int(request.GET.get('page', 1))
-    notes_page_obj = paginator.get_page(page_numer)
+    notes_page_obj = paginator.get_page(request.GET.get('page', 1))
 
-    context = {
-        "notes_list": notes_page_obj
-    }
+    context = {"notes_list": notes_page_obj}
+
     if request.htmx:
         return render(request, 'notes/partials/partial_notes_list.html', context)
 
-    context["user_groups"] = user_groups  # only needed if normal GET request for full page
+    context["user_groups"] = Group.objects.filter(created_by=request.user)
     return render(request, 'notes/notes_search.html', context)
 
 
@@ -116,27 +115,39 @@ def create_note_view(request):
 @require_http_methods(["DELETE"])
 def delete_note_view(request, note_id: str):
     note = get_object_or_404(Note, id=note_id, created_by=request.user)
-    note.delete()
-    # this makes it so HTMX sends a GET request to the dashboard
-    # as normal redirect() would have used sent a DELETE request to the dashboard page instead of GET
+    try:
+        note.delete()
+    except Exception:
+        logger.exception("Failed to delete note %s", note_id)
+        messages.error(request, "Could not delete note. Please try again.")
+        response = HttpResponse(status=500)
+        response["HX-Redirect"] = reverse("notes:note_detail_page", kwargs={"note_id": note_id})
+        return response
+
+    messages.success(request, "Note deleted successfully.")
     response = HttpResponse(status=204)
     response["HX-Redirect"] = reverse("notes:dashboard")
     return response
 
 
-@require_http_methods(["GET"])
 @login_required()
+@require_http_methods(["GET"])
 def note_detail_view(request, note_id: str):
-    note: Note = get_object_or_404(Note, id=note_id)
+    # NOT IMPLEMENTED: ownershiip (rwequest.user == note.created.by) is ont checked here so we can simply send the link and anyone can open that note
+    # this hasn't been done as it would require makign sure the star button also only appers when is_owner == true and the star button is almost on every page...
+    note: Note = get_object_or_404(Note, id=note_id, created_by=request.user)
+    # is_owner = note.created_by == request.user
+    is_owner = True # this has already been checked above
 
     context = {
-        "note": note
+        "note": note,
+        "is_owner": is_owner,
     }
     return render(request, 'notes/note_detail.html', context)
 
 
-@require_http_methods(["GET", "POST"])
 @login_required()
+@require_http_methods(["GET", "POST"])
 def edit_note_page_view(request, note_id: str):
     note: Note = get_object_or_404(Note, id=note_id, created_by=request.user)
     groups = Group.objects.filter(created_by=request.user)
@@ -145,13 +156,17 @@ def edit_note_page_view(request, note_id: str):
         form = NoteForm(request.POST, instance=note)
         if form.is_valid():
             note = form.save()
-            # TODO: success toast here
-            return redirect('notes:note_detail_page', note_id=note.id)  # redirect prevents duplicate save
+            messages.success(request, "Note saved successfully.")
+            return redirect('notes:note_detail_page', note_id=note.id)
+        else:
+            messages.error(request, "Could not save note. Please fix the errors below.")
+    else:
+        form = NoteForm(instance=note)
 
     context = {
         "note": note,
         "groups": groups,
-        "form": NoteForm(instance=note)  # included for error displaying
+        "form": form,
     }
 
     return render(request, 'notes/note_edit.html', context)
@@ -162,8 +177,15 @@ def edit_note_page_view(request, note_id: str):
 def toggle_star_view(request, note_id: str):
     note = get_object_or_404(Note, id=note_id, created_by=request.user)
 
-    note.is_starred = not note.is_starred
-    note.save()
+    try:
+        note.is_starred = not note.is_starred
+        note.save(update_fields=['is_starred', 'updated_at'])
+    except Exception:
+        logger.exception("Failed to toggle star for note %s", note_id)
+        return HttpResponse(
+            '<span class="text-xs text-error">Error</span>',
+            status=500,
+        )
 
     return render(request, 'notes/partials/partial_star_button.html', {"note": note})
 
@@ -180,9 +202,16 @@ def group_list_view(request):
 @login_required()
 @require_http_methods(["POST"])
 def group_create_view(request):
-    name = request.POST.get('name', 'Untitled')
-    # TODO: see if using forms is better here or direct creation is better
-    group = Group.objects.create(name=name, created_by=request.user)
+    name = request.POST.get('name', '').strip()
+    if not name:
+        name = 'Untitled'
+    try:
+        group = Group.objects.create(name=name, created_by=request.user)
+    except Exception:
+        logger.exception("Failed to create group")
+        messages.error(request, "Could not create group. Please try again.")
+        return HttpResponse(status=422)
+
     context = {
         'group': group
     }
@@ -192,26 +221,33 @@ def group_create_view(request):
 @login_required()
 @require_http_methods(["POST"])
 def group_edit_view(request, group_id: str):
-    """Saves the edited group"""
-    group = get_object_or_404(Group, id=group_id)
+    group = get_object_or_404(Group, id=group_id, created_by=request.user)
 
     new_name = request.POST.get('name', 'untitled').strip()
     if len(new_name) < 1:
         new_name = 'untitled'
     group.name = new_name
-    group.save()
 
-    context = {
-        "group": group
-    }
+    try:
+        group.save()
+    except Exception:
+        logger.exception("Failed to edit group %s", group_id)
+        messages.error(request, "Could not update group. Please try again.")
+        return HttpResponse(status=500)
+
+    context = {"group": group}
     return render(request, 'notes/partials/partial_group_item.html', context)
 
 
 @login_required()
 @require_http_methods(["DELETE"])
 def group_delete_view(request, group_id: str):
-    group = get_object_or_404(Group, id=group_id)
-    group.delete()
+    group = get_object_or_404(Group, id=group_id, created_by=request.user)
+    try:
+        group.delete()
+    except Exception:
+        logger.exception("Failed to delete group %s", group_id)
+        return HttpResponse("Error deleting group", status=500)
     return HttpResponse("")  # empty to remove element from DOM
 
 
