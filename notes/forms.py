@@ -9,6 +9,7 @@ class NoteForm(ModelForm):
         fields = ['title', 'group', 'raw_content']
 
 
+# not used
 class GroupForm(ModelForm):
     class Meta:
         model = Group
