@@ -14,7 +14,6 @@ wheels/
 .venv
 # Tailwind dev setup
 node_modules/
-input.css
 
 # temp & secret files
 TODO.txt

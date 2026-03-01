@@ -75,7 +75,23 @@ The app will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 npm i
 ```
 
-#### 2. Build Tailwind CSS
+#### 2. Tailwind setup
+
+Create a file named `input.css` at the project root and add the code below.
+Check more about this config on official [Tailwind docs](https://tailwindcss.com/docs/installation/tailwind-cli)
+and [DaisyUI docs](https://daisyui.com/docs/install/).
+
+```css
+@import "tailwindcss";
+
+@plugin "@tailwindcss/typography";
+@plugin "daisyui" {
+    themes: lemonade --default;
+    /*themes: dim --prefersdark;*/
+}
+```
+
+#### 3. Build Tailwind CSS
 
 For development (watch mode):
 
