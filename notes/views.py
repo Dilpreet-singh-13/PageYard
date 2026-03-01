@@ -15,7 +15,6 @@ from .models import Note, Group
 logger = logging.getLogger(__name__)
 
 
-@login_required()
 def home_view(request):
     return render(request, 'notes/home_page.html')
 
@@ -24,8 +23,8 @@ def home_view(request):
 def dashboard_view(request):
     recent_notes = Note.objects.filter(created_by=request.user).select_related('group').order_by('-updated_at')[:8]
     starred_notes = Note.objects.filter(created_by=request.user, is_starred=True) \
-                                .select_related('group') \
-                                .order_by('-updated_at')[:8]
+        .select_related('group') \
+        .order_by('-updated_at')[:8]
 
     # we extract 8 notes per group FOR all groups
     groups = Group.objects.filter(created_by=request.user).distinct()
@@ -46,8 +45,8 @@ def dashboard_view(request):
 @login_required()
 def notes_list_view(request):
     notes_queryset = Note.objects.filter(created_by=request.user) \
-                                .select_related('group') \
-                                .order_by('-updated_at')
+        .select_related('group') \
+        .order_by('-updated_at')
 
     # show 8 notes per page
     paginator = Paginator(notes_queryset, 8)
@@ -137,7 +136,7 @@ def note_detail_view(request, note_id: str):
     # this hasn't been done as it would require makign sure the star button also only appers when is_owner == true and the star button is almost on every page...
     note: Note = get_object_or_404(Note, id=note_id, created_by=request.user)
     # is_owner = note.created_by == request.user
-    is_owner = True # this has already been checked above
+    is_owner = True  # this has already been checked above
 
     context = {
         "note": note,

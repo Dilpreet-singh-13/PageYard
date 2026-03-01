@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,15 +25,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ad6mtvm1ulxfqac+ql@%ft=wjdevxg)4_67n_$_@v*3m^)hjcm'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY environment variable is not set!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
+allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS")
+if allowed_hosts_env:
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(",")]
+elif DEBUG:
+    # Safe fallback
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+else:
+    raise ValueError("ALLOWED_HOSTS environment variable is NOT set!")
+
+csrf_origins_env = os.environ.get("CSRF_TRUSTED_ORIGINS")
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS = [host.strip() for host in csrf_origins_env.split(",")]
+elif DEBUG:
+    CSRF_TRUSTED_ORIGINS = []
+else:
+    raise ValueError("CSRF_TRUSTED_ORIGINS must be set in production!")
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -56,6 +74,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # whitenoise for static file serving
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,18 +88,38 @@ MIDDLEWARE = [
 AUTH_USER_MODEL = "accounts.CustomUser"
 
 # django-allauth settings
+ALLAUTH_UI_THEME = "lemonade"  # default UI theme for allauth
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-
+# Require email verification before allowing login
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+# Show a "remember me" checkbox on login
+ACCOUNT_SESSION_REMEMBER = True
+# Rate limiting for sensitive actions
+ACCOUNT_RATE_LIMITS = {
+    "login": "5/m/ip,30/h/ip",
+    "login_failed": "10/m/ip,25/h/ip",
+    "signup": "5/m/ip",
+    "send_mail": "2/m,5/h",
+    "change_password": "5/m",
+    "reset_password": "5/m",
+    "confirm_email": "3/m",
+}
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[PageYard] "
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_PASSWORD_CHANGE_REDIRECT_URL = "/accounts/profile/"
+ACCOUNT_USER_DISPLAY = lambda user: user.email
+# socail login by django-allauth
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         "APPS": [
             {
-                "client_id": os.getenv("GOOGLE_CLIENT_ID"),
-                "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+                "client_id": os.environ["GOOGLE_CLIENT_ID"],
+                "secret": os.environ["GOOGLE_CLIENT_SECRET"],
                 "key": "",  # not needed for Google OAuth
             },
         ],
@@ -122,11 +161,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'my_notes_app',
-        'USER': 'postgres',
-        'PASSWORD': os.getenv("DB_PASSWORD"),
-        'HOST': 'localhost',
-        'PORT': '5432',  # Default Postgres port
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -158,7 +197,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Kolkata'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
@@ -168,21 +207,44 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"] # where files exist in dev
-STATIC_ROOT = BASE_DIR / "staticfiles" # this is where collectstatic will put them
+STATICFILES_DIRS = [BASE_DIR / "static"]  # where files exist in dev
+STATIC_ROOT = BASE_DIR / "staticfiles"  # this is where collectstatic will put them
+
+# whitenoise cache and storage
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# TODO: CHANGE THESEEE
-
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/pages/'
 LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/accounts/login/"
-LOGOUT_URL = "accounts/logout"
+LOGOUT_URL = "/accounts/logout/"
 
-# default UI theme for allauth
-ALLAUTH_UI_THEME = "lemonade"
+# Email Configuration (Resend SMTP)
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY')
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "support@pageyard.app")
+
+# Production specific settings
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 3600  # 1 hr to test initially
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

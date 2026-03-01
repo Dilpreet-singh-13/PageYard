@@ -9,7 +9,7 @@
 			  class="relative w-full flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-base-100 p-2 sm:p-3 rounded-3xl shadow-sm border border-base-200/50 hover:shadow-md transition-shadow duration-300">
 			<label class="floating-label flex-auto group">
 				<span class="sr-only">Search</span>
-				<input type="text" name="q" placeholder="Search your notes..."
+				<input type="text" name="q" placeholder="Search your pages..."
 					   class="input input-lg w-full bg-transparent border-0 focus:outline-hidden focus:border-0 placeholder:text-base-content/30 text-base-content" />
 			</label>
 			<button type="submit" class="btn btn-primary rounded-2xl px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 border-0 text-primary-content transition-all shrink-0 w-full sm:w-auto">
@@ -21,27 +21,32 @@
 	<!-- recent notes -->
 	<section>
 		<div class="flex items-end justify-between mb-5">
-			<h2 class="text-base-content text-2xl md:text-3xl font-extrabold tracking-tight">Continue Working</h2>
-			<a href="{% url 'notes:notes_search_page' %}"
-			   class="btn btn-sm btn-ghost text-secondary hover:bg-secondary/10 -mb-1">
-				View All
-			</a>
-		</div>
+      <div class="flex items-center gap-2 md:gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-7 md:size-8 text-primary">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <h2 class="text-base-content text-2xl md:text-3xl font-extrabold tracking-tight">Continue Working</h2>
+      </div>
+      <a href="{% url 'notes:notes_search_page' %}"
+         class="btn btn-sm btn-ghost text-secondary hover:bg-secondary/10 -mb-1">
+	      View All
+      </a>
+    </div>
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 			{% for note in recent_notes %}
 				{% include 'notes/partials/partial_note_item.html' with note=note %}
 			{% empty %}
 				<div class="col-span-full py-16 flex flex-col items-center justify-center bg-base-100 border border-base-200 rounded-3xl shadow-sm text-base-content/60">
-					<div class="bg-base-200 p-4 rounded-full mb-3">
-						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 text-base-content/40">
-							<path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-						</svg>
-					</div>
-					<span class="text-lg font-semibold text-base-content">No recent activity</span>
-					<p class="text-sm opacity-70">Jump back in whenever you're ready.</p>
-					<a href="{% url 'notes:new_note_page' %}" class="btn btn-accent btn-sm mt-4 shadow-sm">Create New Note</a>
-				</div>
+          <div class="bg-base-200 p-4 rounded-full mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 text-base-content/40">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+            </svg>
+          </div>
+          <span class="text-lg font-semibold text-base-content">No recent activity</span>
+          <p class="text-sm opacity-70">Jump back in whenever you're ready.</p>
+          <a href="{% url 'notes:new_note_page' %}" class="btn btn-accent btn-sm mt-4 shadow-sm">Create New Note</a>
+         </div>
 			{% endfor %}
 		</div>
 	</section>
@@ -50,9 +55,9 @@
 	<section>
 		<div class="flex items-end justify-between mb-5">
 			<div class="flex items-center gap-2">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-6 text-warning">
-					<path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
-				</svg>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-7 md:size-8 text-warning drop-shadow-md">
+          <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd" />
+        </svg>
 				<h2 class="text-base-content text-2xl md:text-3xl font-extrabold tracking-tight">Starred</h2>
 			</div>
 			<a href="{% url 'notes:notes_search_page' %}?is_starred=on"
@@ -75,7 +80,14 @@
 
 	<!-- notes per group -->
 	<section class="pt-4 border-t border-base-content/10">
-		<h2 class="text-base-content text-2xl md:text-3xl font-extrabold tracking-tight mb-6">My Groups</h2>
+
+		<div class="flex items-center gap-2 md:gap-3 mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-7 md:size-8 text-base-content/80">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+      </svg>
+      <h2 class="text-base-content text-2xl md:text-3xl font-extrabold tracking-tight">My Groups</h2>
+    </div>
+
 		<div class="space-y-10">
 			{% for group in groups_with_notes %}
 				{% if group.preview_notes %}
