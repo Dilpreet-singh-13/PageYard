@@ -50,7 +50,7 @@ def notes_list_view(request):
 
     # show 8 notes per page
     paginator = Paginator(notes_queryset, 8)
-    page_number = int(request.GET.get('page', 1))
+    page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
     context = {
@@ -64,14 +64,20 @@ def notes_list_view(request):
     return render(request, 'notes/notes_list.html', context)
 
 
+def _str_to_bool(val) -> bool:
+    if val is None:
+        return False
+    return True if val.lower() in ("1", "true", "yes", "on", "y") else None
+
+
 @login_required()
 def notes_search_view(request):
     user_notes = Note.objects.filter(created_by=request.user).select_related('group').order_by("-updated_at")
 
     q = request.GET.get('q', '').strip()
     group_id = request.GET.get('group')
-    is_starred = request.GET.get('is_starred')
-    title_only = request.GET.get('title_only')
+    is_starred = _str_to_bool(request.GET.get('is_starred'))
+    title_only = _str_to_bool(request.GET.get('title_only'))
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
@@ -107,6 +113,7 @@ def notes_search_view(request):
 @login_required()
 def create_note_view(request):
     note = Note.objects.create(created_by=request.user)
+    logger.info("User %s created a new note (ID: %s)", request.user, note.id)
     return redirect('notes:note_edit_page', note_id=note.id)
 
 
@@ -135,8 +142,8 @@ def note_detail_view(request, note_id: str):
     # NOT IMPLEMENTED: ownershiip (rwequest.user == note.created.by) is ont checked here so we can simply send the link and anyone can open that note
     # this hasn't been done as it would require makign sure the star button also only appers when is_owner == true and the star button is almost on every page...
     note: Note = get_object_or_404(Note, id=note_id, created_by=request.user)
+    is_owner = note.created_by == request.user
     # is_owner = note.created_by == request.user
-    is_owner = True  # this has already been checked above
 
     context = {
         "note": note,
@@ -155,6 +162,7 @@ def edit_note_page_view(request, note_id: str):
         form = NoteForm(request.POST, instance=note)
         if form.is_valid():
             note = form.save()
+            logger.info("User %s updated note (ID: %s)", request.user.id, note.id)
             messages.success(request, "Note saved successfully.")
             return redirect('notes:note_detail_page', note_id=note.id)
         else:
@@ -222,9 +230,7 @@ def group_create_view(request):
 def group_edit_view(request, group_id: str):
     group = get_object_or_404(Group, id=group_id, created_by=request.user)
 
-    new_name = request.POST.get('name', 'untitled').strip()
-    if len(new_name) < 1:
-        new_name = 'untitled'
+    new_name = request.POST.get('name', '').strip() or 'untitled'
     group.name = new_name
 
     try:
@@ -244,6 +250,7 @@ def group_delete_view(request, group_id: str):
     group = get_object_or_404(Group, id=group_id, created_by=request.user)
     try:
         group.delete()
+        logger.info("User %s deleted group (ID: %s)", request.user, group.id)
     except Exception:
         logger.exception("Failed to delete group %s", group_id)
         return HttpResponse("Error deleting group", status=500)

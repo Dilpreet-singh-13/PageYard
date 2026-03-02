@@ -45,18 +45,23 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
 
-      <label class="form-control w-full">
+      <label class="form-control w-full group focus:outline-none group-hover:bg-secondary/10">
         <div class="label pt-0 pb-1">
-          <span class="label-text text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Updated After</span>
+          <span class="label-text text-[10px] font-bold text-base-content/60 uppercase tracking-wider">
+	          Updated After
+          </span>
         </div>
-        <input type="date" name="start_date" class="input input-sm input-bordered bg-base-100 border-base-200 focus:border-secondary focus:outline-secondary rounded-xl w-full transition-colors" />
+        <input type="date" name="start_date" class="input input-sm input-bordered bg-base-100 border-base-200
+              hover:border-secondary focus:border-secondary hover:text-secondary focus:outline-none rounded-xl w-full transition-colors" />
       </label>
 
-      <label class="form-control w-full">
+      <label class="form-control w-full group focus:outline-none group-hover:bg-secondary/10">
         <div class="label pt-0 pb-1">
-          <span class="label-text text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Updated Before</span>
+          <span class="label-text text-[10px] font-bold text-base-content/60 uppercase tracking-wider">
+	          Updated Before</span>
         </div>
-        <input type="date" name="end_date" class="input input-sm input-bordered bg-base-100 border-base-200 focus:border-secondary focus:outline-secondary rounded-xl w-full transition-colors" />
+        <input type="date" name="end_date" class="input input-sm bg-base-100 border-base-200 group-hover:text-secondary
+                group-hover:bg-secondary/10 focus:outline-none focus:border-secondary rounded-xl w-full transition-colors" />
       </label>
 
       <label class="form-control w-full">
@@ -76,8 +81,11 @@
         <input type="checkbox" name="is_starred" class="checkbox checkbox-xs checkbox-accent rounded-sm" />
       </label>
 
-      <label class="cursor-pointer h-8 flex items-center justify-between px-3 rounded-xl border border-base-200 hover:border-secondary/50 hover:bg-secondary/5 transition-all bg-base-100 group">
-        <span class="label-text text-xs font-semibold text-base-content/80 group-hover:text-secondary transition-colors">Title Match</span>
+      <label class="cursor-pointer h-8 flex items-center justify-between px-3 rounded-xl border border-base-200
+                    hover:border-secondary/50 hover:bg-secondary/5 transition-all bg-base-100 group">
+        <span class="label-text text-xs font-semibold text-base-content/80 group-hover:text-secondary transition-colors">
+	        Title Match
+        </span>
         <input type="checkbox" name="title_only" checked class="checkbox checkbox-xs checkbox-secondary rounded-sm" />
       </label>
     </div>
