@@ -210,7 +210,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"  # this is where collectstatic will put t
 # whitenoise cache and storage
 STORAGES = {
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 WHITENOISE_MANIFEST_STRICT = False
