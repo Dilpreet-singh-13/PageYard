@@ -16,6 +16,7 @@ dependencies = [
     "markdown>=3.10",
     "nh3>=0.3.2",
     "psycopg2>=2.9.11",
+    "psycopg2-binary>=2.9.11",
     "slippers>=0.6.2",
     "whitenoise>=6.12.0",
 ]
