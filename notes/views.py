@@ -19,6 +19,10 @@ def home_view(request):
     return render(request, 'notes/home_page.html')
 
 
+def privacy_policy_view(request):
+    return render(request, 'notes/privacy_policy.html')
+
+
 @login_required()
 def dashboard_view(request):
     recent_notes = Note.objects.filter(created_by=request.user).select_related('group').order_by('-updated_at')[:8]
