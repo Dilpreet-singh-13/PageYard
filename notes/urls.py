@@ -5,6 +5,7 @@ from . import views
 app_name = "notes"
 urlpatterns = [
     path('', views.home_view, name='home'),
+    path('privacy-policy/', views.privacy_policy_view, name='privacy_policy_page'),
     path('pages/', views.dashboard_view, name='dashboard'),
     path('pages/all/', views.notes_list_view, name='all_notes_view'),
     path('pages/search/', views.notes_search_view, name='notes_search_page'),
