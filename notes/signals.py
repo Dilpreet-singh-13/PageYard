@@ -1,29 +1,33 @@
-# from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.search import SearchVector
+from django.db import connection
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .models import Note, NoteAttachment
 
 
-# @receiver(post_save, sender=Note)
-# def update_note_search_vector(sender, instance, update_fields, **kwargs):
-#     """
-#     Rebuild search_vector after any save that changes content.
+@receiver(post_save, sender=Note)
+def update_note_search_vector(sender, instance, update_fields, **kwargs):
+    """
+    Rebuild search_vector after any save that changes content (PostgreSQL only).
 
-#     Uses .update() rather than instance.save() deliberately:
-#     - update() is a direct SQL UPDATE — no model overhead, no signals fired, no risk of recursion.
-#     - Checking update_fields means trash(), restore(), and toggle_star() calls
-#     (which pass explicit update_fields with no content fields) skip this entirely — no wasted DB round-trip on metadata-only saves.
-#     """
-#     content_fields = {"title", "raw_content"}  # fields taken from Note model
+    Uses .update() rather than instance.save() deliberately:
+    - update() is a direct SQL UPDATE — no model overhead, no signals fired, no risk of recursion.
+    - Checking update_fields means trash(), restore(), and toggle_star() calls
+      (which pass explicit update_fields with no content fields) skip this entirely — no wasted DB round-trip on metadata-only saves.
+    """
+    if connection.vendor != "postgresql":
+        return
 
-#     # only update if any content changes (not metadata changes)
-#     if update_fields is not None and not content_fields.intersection(update_fields):
-#         return
+    content_fields = {"title", "raw_content"}  # fields taken from Note model
 
-#     Note.objects.filter(pk=instance.pk).update(
-#         search_vector=SearchVector("title", weight="A") + SearchVector("raw_content", weight="B")
-#     )
+    # only update if any content changes (not metadata changes)
+    if update_fields is not None and not content_fields.intersection(update_fields):
+        return
+
+    Note.objects.filter(pk=instance.pk).update(
+        search_vector=SearchVector("title", weight="A") + SearchVector("raw_content", weight="B")
+    )
 
 
 @receiver(post_delete, sender=NoteAttachment)

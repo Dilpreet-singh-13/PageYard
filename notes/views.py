@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Q, F
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -91,68 +92,12 @@ def notes_list_view(request):
     return render(request, "notes/notes_list.html", context)
 
 
-#  Search function for postgresql
-# @login_required()
-# def notes_search_view(request):
-#     user_notes = (
-#         Note.objects.by_user(request.user).active()
-#         .prefetch_related("tags")
-#     )
-
-#     q = request.GET.get("q", "").strip()
-#     tag_id = request.GET.get("tag")
-#     is_starred = _str_to_bool(request.GET.get("is_starred"))
-#     title_only = _str_to_bool(request.GET.get("title_only"))
-#     start_date = request.GET.get("start_date")
-#     end_date = request.GET.get("end_date")
-
-#     if q:
-#         if title_only:
-#             # Bypass the combined vector and do a basic text search on the title
-#             user_notes = user_notes.filter(title__search=q)
-#             user_notes = user_notes.order_by("-updated_at")
-#         else:
-#             # 1. Convert the raw string into a parsed PostgreSQL SearchQuery
-#             search_query = SearchQuery(q)
-
-#             # 2. Filter hits utilizing your GIN-indexed search_vector field
-#             user_notes = user_notes.filter(search_vector=search_query)
-
-#             # 3. Calculate rank so hits in the Title (Weight A) appear
-#             #    higher than hits in the Body (Weight B)
-#             user_notes = user_notes.annotate(
-#                 rank=SearchRank(F("search_vector"), search_query)
-#             ).order_by("-rank", "-updated_at")
-#     else:
-#         # Fallback to default ordering when there is no search query
-#         user_notes = user_notes.order_by("-updated_at")
-
-#     if tag_id:
-#         user_notes = user_notes.filter(tags=tag_id)
-
-#     if is_starred:
-#         user_notes = user_notes.filter(is_starred=True)
-
-#     if start_date:
-#         user_notes = user_notes.filter(updated_at__date__gte=start_date)
-#     if end_date:
-#         user_notes = user_notes.filter(updated_at__date__lte=end_date)
-
-#     paginator = Paginator(user_notes, 16)
-#     notes_page_obj = paginator.get_page(request.GET.get("page", 1))
-
-#     context = {"notes_list": notes_page_obj}
-
-#     if request.htmx:
-#         return render(request, "notes/partials/partial_notes_list.html", context)
-
-#     context["user_tags"] = Tag.objects.filter(created_by=request.user)
-#     return render(request, "notes/notes_search.html", context)
-
-
-# search function for sqlite or other dbs
 @login_required()
 def notes_search_view(request):
+    """
+    Search notes dynamically using PostgreSQL full-text search when available,
+    or falling back to case-insensitive icontains matching for SQLite and other backends.
+    """
     user_notes = (
         Note.objects.by_user(request.user)
         .active()
@@ -170,12 +115,27 @@ def notes_search_view(request):
     logger.debug("User %s searched notes with query '%s'", request.user.id, q)
 
     if q:
-        if title_only:
-            user_notes = user_notes.filter(title__icontains=q)
+        if connection.vendor == "postgresql":
+            if title_only:
+                # Bypass the combined vector and do a text search on the title
+                user_notes = user_notes.filter(title__search=q).order_by("-updated_at")
+            else:
+                # PostgreSQL GIN-indexed full-text search with rank scoring
+                search_query = SearchQuery(q)
+                user_notes = (
+                    user_notes
+                    .filter(search_vector=search_query)
+                    .annotate(rank=SearchRank(F("search_vector"), search_query))
+                    .order_by("-rank", "-updated_at")
+                )
         else:
-            user_notes = user_notes.filter(
-                Q(title__icontains=q) | Q(raw_content__icontains=q)
-            )
+            # SQLite / standard DB fallback
+            if title_only:
+                user_notes = user_notes.filter(title__icontains=q)
+            else:
+                user_notes = user_notes.filter(
+                    Q(title__icontains=q) | Q(raw_content__icontains=q)
+                )
 
     if tag_id:
         user_notes = user_notes.filter(tags=tag_id)
