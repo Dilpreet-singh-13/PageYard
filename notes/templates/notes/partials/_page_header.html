@@ -1,0 +1,15 @@
+{# Reusable page header partial #}
+{# Context: title (required), subtitle (optional), icon_svg (optional raw SVG string) #}
+<header class="mb-8">
+    <div class="flex items-center gap-2 md:gap-3">
+        {% if icon_svg %}
+            {{ icon_svg|safe }}
+        {% endif %}
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-base-content leading-tight">{{ title }}</h1>
+            {% if subtitle %}
+                <p class="text-sm text-base-content/60 mt-1">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+    </div>
+</header>

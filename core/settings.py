@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 import os
 import sys
 from pathlib import Path
@@ -52,36 +53,40 @@ else:
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.postgres",
     # custom apps
-    'accounts',
+    "accounts",
     "notes",
+    # django-storages for R2 or S3
+    "storages",
     # allauth ui for views
     "allauth_ui",
     # aullauth apps
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "widget_tweaks",
     "slippers",
     "django_htmx",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",  # whitenoise for static file serving
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
@@ -89,13 +94,13 @@ MIDDLEWARE = [
 AUTH_USER_MODEL = "accounts.CustomUser"
 
 # django-allauth settings
-ALLAUTH_UI_THEME = "lemonade"  # default UI theme for allauth
+ALLAUTH_UI_THEME = "lemonade"  # default UI theme for allauth, can refer to DaisyUI for more details & themes
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_UNIQUE_EMAIL = True
 # Require email verification before allowing login
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 # Show a "remember me" checkbox on login
 ACCOUNT_SESSION_REMEMBER = True
@@ -116,7 +121,7 @@ ACCOUNT_PASSWORD_CHANGE_REDIRECT_URL = "/accounts/profile/"
 ACCOUNT_USER_DISPLAY = lambda user: user.email
 # socail login by django-allauth
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
+    "google": {
         "APPS": [
             {
                 "client_id": os.environ["GOOGLE_CLIENT_ID"],
@@ -124,51 +129,99 @@ SOCIALACCOUNT_PROVIDERS = {
                 "key": "",  # not needed for Google OAuth
             },
         ],
-        'SCOPE': [
-            'profile',
-            'email',
+        "SCOPE": [
+            "profile",
+            "email",
         ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
+        "AUTH_PARAMS": {
+            "access_type": "online",
         },
-        'OAUTH_PKCE_ENABLED': True,
-        'EMAIL_AUTHENTICATION': True,
-        'FETCH_USERINFO': True
+        "OAUTH_PKCE_ENABLED": True,
+        "EMAIL_AUTHENTICATION": True,
+        "FETCH_USERINFO": True,
     }
 }
 
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+WSGI_APPLICATION = "core.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
+    "default": dj_database_url.config(
         conn_max_age=600,
         conn_health_checks=True,
     ),
 }
 
+# Redis is required in production because multiple Gunicorn workers do not share Django's
+# default LocMemCache. Without a shared cache backend, features like ACCOUNT_RATE_LIMITS
+# become ineffective since each worker maintains its own independent cache.
+REDIS_URL = os.getenv("REDIS_URL")
+
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            # default choice, used by django & used by allauth -> ACCOUNT_RATE_LIMITS relies on this.
+            # no default TTL
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "KEY_PREFIX": "security",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        },
+        "app": {
+            # used by the app code (ie in views), can be used like:
+            # from django.core.cache import caches
+            # cache = caches["app"]
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "KEY_PREFIX": "pageyard",
+            "TIMEOUT": 600,  # default: 10 min TTL
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,  # allow silent failures in this case
+            },
+        },
+    }
+elif not DEBUG:
+    raise ImproperlyConfigured(
+        "REDIS_URL environment variable is not set!"
+    )  # mandatory redis in production
+else:
+    # fallback for local development
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "pageyard-security-cache",
+        },
+        "app": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "pageyard-app-cache",
+        },
+    }
+
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 # Password validation
@@ -176,25 +229,25 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -207,8 +260,25 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]  # where files exist in dev
 STATIC_ROOT = BASE_DIR / "staticfiles"  # this is where collectstatic will put them
 
-# whitenoise cache and storage
+# R2 or AWS are just in the names, functionality wise AWS S3 or Cloudflare R2 both can be used without any code changes
+R2_ACCOUNT_ID = os.environ["R2_ACCOUNT_ID"]
+AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+AWS_STORAGE_BUCKET_NAME = os.environ["AWS_STORAGE_BUCKET_NAME"]
+AWS_S3_ENDPOINT_URL = os.environ["AWS_S3_ENDPOINT_URL"]
+
+AWS_ATTACHMENT_UPLOAD_EXPIRY = 300  # 5 min upload window
+# AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}  # can be used for future CDN & browser caching
+
+AWS_S3_CUSTOM_DOMAIN = os.getenv("R2_PUBLIC_DOMAIN", "")  # eg pub-abc123xyz456.r2.dev or media.pageyard.app
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/" if AWS_S3_CUSTOM_DOMAIN else "/media/"
+
 STORAGES = {
+    # used by (ImageField, FileField etc) & for uploading exports (coming soon)
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+    },
+    # used by collectstatic : for static assests (HTML, CSS, JS)
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
@@ -218,9 +288,9 @@ WHITENOISE_MANIFEST_STRICT = False
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_REDIRECT_URL = '/pages/'
+LOGIN_REDIRECT_URL = "/pages/"
 LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/accounts/login/"
@@ -228,14 +298,14 @@ LOGOUT_URL = "/accounts/logout/"
 
 # Email Configuration (Resend SMTP)
 if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = os.getenv("EMAIL_HOST", "")
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
     EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY')
+    EMAIL_HOST_PASSWORD = os.environ.get("RESEND_API_KEY")
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "support@pageyard.app")
 
 # Production specific settings
@@ -246,6 +316,37 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Celery settings
+# broker: RabbitMQ (task queue) | result backend: same Upstash Redis instance used for caching
+RABBITMQ_URL = os.getenv("RABBITMQ_URL")
+
+if RABBITMQ_URL:
+    CELERY_BROKER_URL = RABBITMQ_URL
+elif DEBUG:
+    # fallback for local development (assumes a local RabbitMQ, e.g. via docker)
+    CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672//"
+else:
+    raise ImproperlyConfigured("RABBITMQ_URL environment variable is not set!")
+
+# Reuses the same Upstash Redis instance as CACHES above. `global_keyprefix` keeps
+# celery's result keys (celery_celery-task-meta-*) separate from the "security:" and
+# "pageyard:" prefixed keys used by the django-redis caches, without needing a
+# separate Redis database/namespace.
+CELERY_RESULT_BACKEND = REDIS_URL if REDIS_URL else None
+CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {
+    "global_keyprefix": "celery_",
+}
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE  # keep celery's clock in sync with Django's (UTC)
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# django-celery-beat: DB-backed periodic task schedule (editable from admin interface without a redeploy)
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Logging Configuration
 # https://docs.djangoproject.com/en/5.2/topics/logging/

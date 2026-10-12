@@ -4,14 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 
-from notes.models import Note, Group
+from notes.models import Note, Tag
 
 
 @login_required
 def profile_view(request):
     context = {
         'note_count': Note.objects.filter(created_by=request.user).count(),
-        'group_count': Group.objects.filter(created_by=request.user).count(),
+        'tag_count': Tag.objects.filter(created_by=request.user).count(),
     }
     return render(request, 'profile.html', context)
 

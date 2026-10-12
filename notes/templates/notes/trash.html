@@ -1,0 +1,55 @@
+{% extends 'notes/dashboard_base.html' %}
+
+{% block title %}Bin | PageYard{% endblock title %}
+
+{% block main %}
+
+<section class="w-full flex flex-col gap-6">
+    <!-- Header with count badge + empty bin button -->
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-base-content flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-7 md:size-8 text-error">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+                Bin
+                {% if trashed_notes %}
+                    <span class="badge badge-error badge-sm text-error-content font-bold">{{ trashed_notes|length }}</span>
+                {% endif %}
+            </h1>
+            <p class="text-sm text-base-content/60 mt-1">
+                Recover your deleted pages or permanently remove them.
+            </p>
+        </div>
+        
+        {% if trashed_notes %}
+        <!-- Empty Bin Action -->
+        <button class="btn btn-error btn-outline shadow-sm"
+                hx-post="{% url 'notes:empty_trash_page' %}" 
+                hx-confirm="Are you sure you want to permanently delete all notes in the bin? This action is not reversible!">
+            Empty Bin
+        </button>
+        {% endif %}
+    </header>
+
+    {% if trashed_notes %}
+    <!-- Warning alert -->
+    <div role="alert" class="alert alert-warning alert-soft">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span class="text-sm font-medium">Items in the bin will be permanently deleted automatically after 30 days.</span>
+    </div>
+    {% endif %}
+
+    <!-- Notes Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {% for note in trashed_notes %}
+            {% include 'notes/partials/partial_note_item.html' with note=note %}
+        {% empty %}
+            {% include 'notes/partials/_empty_state.html' with heading="Trash is empty" description="No deleted pages found." icon_svg='<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 text-base-content/40"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>' %}
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock main %}

@@ -1,0 +1,6 @@
+{# Reusable stat card partial #}
+{# Context: stat_value (required), stat_label (required), stat_color (optional, e.g. "text-primary") #}
+<div class="stat place-items-center">
+    <div class="stat-value {{ stat_color|default:'text-base-content' }}">{{ stat_value|default:"0" }}</div>
+    <div class="stat-title text-xs font-bold uppercase tracking-wider mt-1">{{ stat_label }}</div>
+</div>

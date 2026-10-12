@@ -1,0 +1,16 @@
+{# Reusable empty state partial #}
+{# Context: icon_svg (optional), heading (required), description (optional), cta_url (optional), cta_text (optional) #}
+<div class="col-span-full py-16 flex flex-col items-center justify-center bg-base-100 border border-dashed border-base-300 rounded-box shadow-sm text-base-content/60">
+    {% if icon_svg %}
+    <div class="bg-base-200 p-4 rounded-full mb-3">
+        {{ icon_svg|safe }}
+    </div>
+    {% endif %}
+    <span class="text-lg font-semibold text-base-content">{{ heading }}</span>
+    {% if description %}
+        <p class="text-sm opacity-70 mt-1">{{ description }}</p>
+    {% endif %}
+    {% if cta_url and cta_text %}
+        <a href="{{ cta_url }}" class="btn btn-primary btn-sm mt-4 shadow-sm">{{ cta_text }}</a>
+    {% endif %}
+</div>

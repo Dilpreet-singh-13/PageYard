@@ -1,34 +1,41 @@
+{# Known issue: DaisyUI provides some util like .table which affects the classes made by EasyMDE #}
+{# Custom CSS override is required to fix this! This is done under project_root > static/css/editor.css #}
+
 {% extends 'notes/dashboard_base.html' %}
 
+{% load static %}
+
+{% block title %}Edit: {{ note.title }} | PageYard{% endblock title %}
+
+{% block head %}
+<!-- EasyMDE addition -->
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+<link rel="stylesheet" href="{% static 'css/editor.css' %}" />
+{% endblock head %}
+
 {% block main %}
+
 {# main note form, its input fields are linked below #}
 <form method="post" id="note_form">
-	{% csrf_token %}
+  {% csrf_token %}
 </form>
 
-<article class="w-full h-screen flex flex-col">
-  <div class="bg-base-100 rounded-3xl shadow-sm border border-base-200/80 flex flex-col h-full overflow-hidden relative">
+<article class="w-full h-full flex flex-col">
+  <div
+    class="bg-base-100 rounded-box shadow-sm border border-base-200/80 flex flex-col h-full overflow-hidden relative">
 
-    <header class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 md:px-8 md:py-6 border-b border-base-200/50 bg-base-100 shrink-0">
+    <header
+      class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 md:px-8 md:py-6 border-b border-base-200/50 bg-base-100 shrink-0">
 
       <div class="flex flex-col w-full md:w-auto md:flex-1 min-w-0 gap-2">
         <label for="note_title" class="sr-only">Title</label>
         <input id="note_title" type="text" name="title" form="note_form" value="{{ note.title }}"
-               placeholder="Untitled Note"
-               class="input input-lg input-ghost p-0 h-auto text-3xl md:text-4xl font-extrabold tracking-tight placeholder:text-base-content/20 text-base-content focus:bg-transparent focus:outline-hidden border-none w-full" />
+          placeholder="Untitled Note"
+          class="font-display input input-lg input-ghost p-0 h-auto text-3xl md:text-4xl font-semibold tracking-tight placeholder:text-base-content/20 text-base-content focus:bg-transparent focus:outline-hidden border-none w-full" />
 
         <div class="flex items-center gap-2 w-full min-w-0">
-           <div class="relative min-w-0 max-w-full">
-             <select form="note_form" id="note_group" name="group"
-                    class="select select-sm select-bordered rounded-full bg-base-100 border-base-300 text-xs font-bold uppercase tracking-wide focus:border-secondary focus:ring-0 focus:outline-hidden pr-8 max-w-full truncate">
-              <option value="" {% if not note.group %} selected {% endif %}>No Group</option>
-              {% for group in groups %}
-                <option value="{{ group.id }}" {% if note.group_id == group.id %} selected {% endif %}>
-                  {{ group.name }}
-                </option>
-              {% endfor %}
-            </select>
-           </div>
+          <!-- Note tags badges -->
+          {% include 'notes/partials/partial_note_tags.html' with note=note is_owner=True %}
         </div>
       </div>
 
@@ -38,7 +45,7 @@
         </div>
 
         <button form="note_form" type="submit" formaction="{% url 'notes:note_edit_page' note.id %}"
-                class="btn btn-primary rounded-full px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 border-0 text-primary-content transition-all">
+          class="btn btn-primary rounded-full px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 border-0 text-primary-content transition-all">
           Save Changes
         </button>
       </div>
@@ -46,28 +53,382 @@
 
     {% if form.errors %}
     <div class="px-6 pt-4">
-      <div class="alert alert-error alert-soft rounded-xl text-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <div class="alert alert-error alert-soft text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
         <div>
           {% for field, errors in form.errors.items %}
-            {% for error in errors %}
-              <p><strong>{{ field|title }}:</strong> {{ error }}</p>
-            {% endfor %}
+          {% for error in errors %}
+          <p><strong>{{ field|title }}:</strong> {{ error }}</p>
+          {% endfor %}
           {% endfor %}
         </div>
       </div>
     </div>
     {% endif %}
 
-    <!-- main body content -->
-    <textarea
-      x-data
-      @keydown.tab.prevent="$el.setRangeText('    ', $el.selectionStart, $el.selectionStart, 'end')"
-      id="new_note_body" form="note_form" name="raw_content"
-      placeholder="Start typing..."
-      class="flex-1 textarea textarea-ghost w-full resize-none p-6 font-mono focus:outline-none focus:ring-0 border-none overflow-auto">{{ note.raw_content }}</textarea>
+    <!-- progress bar for uploads (hidden by default) -->
+    <div id="upload_progress_container" class="hidden mt-3">
+      <p id="upload_progress_filename" class="text-sm text-base-content/80 mb-2"></p>
+
+      <progress id="upload_progress_bar" class="progress progress-primary w-full" max="100" value="0">
+      </progress>
+    </div>
+
+    <!-- main body content : editing area -->
+    <textarea id="new_note_body" form="note_form" name="raw_content"
+      data-upload-url="{% url 'notes:note_attachment_presign' note.id %}"
+      placeholder="Start typing...">{{ note.raw_content }}</textarea>
 
   </div>
 </article>
 
 {% endblock main %}
+
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+
+<script>
+  // Error code -> human-readable messages 
+  // These feed into EasyMDE's errorCallback, which dispatches the 'show-toast'
+  // event that the Alpine toastManager in dashboard_base.html listens for.
+  const UPLOAD_ERRORS = {
+      noFileGiven: 'No file was provided.',
+      typeNotAllowed: 'That file type is not allowed. Use PNG, JPEG, GIF, or WebP.',
+      fileTooLarge: 'Image is too large. Maximum size is 5 MB.',
+      invalidFileSize: 'Could not read the file size.',
+      invalidRequest: 'Upload request was invalid.',
+      presignFailed: 'Could not prepare the upload. Please try again.',
+      uploadMissing: 'Upload could not be verified. Please retry.',
+      alreadyCompleted: 'This attachment was already processed.',
+  };
+
+  function uploadErrorMessage(code) {
+      return UPLOAD_ERRORS[code] ?? 'Image upload failed. Please try again.';
+  }
+
+  function getCsrfToken() {
+      return document.cookie
+          .split('; ')
+          .find(c => c.startsWith('csrftoken='))
+          ?.split('=')[1] ?? '';
+  }
+
+  // Active Upload References & Page Unload Handling
+  const activeUploads = new Set();
+  const activeAbortControllers = new Set();
+  const activeProgressMap = new Map(); // tracks concurrent upload states: file -> { loaded, total, name }
+
+  window.addEventListener("beforeunload", () => {
+      for (const xhr of activeUploads) {
+          xhr.abort();
+      }
+      for (const controller of activeAbortControllers) {
+          controller.abort();
+      }
+  });
+
+  // Fetch with Timeout Helper
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+
+      activeAbortControllers.add(controller);
+
+      try {
+          return await fetch(url, {
+              ...options,
+              signal: controller.signal,
+              cache: "no-store",
+          });
+      } catch (err) {
+          if (err.name === "AbortError") {
+              throw new Error("timeout");
+          }
+          throw err;
+      } finally {
+          clearTimeout(id);
+          activeAbortControllers.delete(controller);
+      }
+  }
+
+  // XMLHttpRequest PUT Helper (for Upload Progress)
+  function uploadFileToR2Async(url, file, onProgress) {
+      return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          activeUploads.add(xhr);
+
+          xhr.open("PUT", url);
+          xhr.setRequestHeader("Content-Type", file.type);
+          xhr.timeout = 60000;
+
+          xhr.upload.onprogress = (e) => {
+              if (!e.lengthComputable) return;
+              onProgress(e.loaded, e.total);
+          };
+
+          xhr.onload = () => {
+              activeUploads.delete(xhr);
+
+              xhr.upload.onprogress = null;
+              xhr.onload = null;
+              xhr.onerror = null;
+              xhr.onabort = null;
+              xhr.ontimeout = null;
+
+              if (xhr.status >= 200 && xhr.status < 300) {
+                  resolve();
+              } else {
+                  reject(new Error("storageFailed"));
+              }
+          };
+
+          xhr.onerror = () => {
+              activeUploads.delete(xhr);
+              reject(new Error("networkError"));
+          };
+
+          xhr.ontimeout = () => {
+              activeUploads.delete(xhr);
+              reject(new Error("timeout"));
+          };
+
+          xhr.onabort = () => {
+              activeUploads.delete(xhr);
+              reject(new Error("aborted"));
+          };
+
+          xhr.send(file);
+      });
+  }
+
+  // State Management: Loading & Progress UI
+  function setEditorLoadingState(isLoading) {
+      const container = document.querySelector('.EasyMDEContainer');
+      const toolbar = container?.querySelector('.editor-toolbar');
+      const saveBtn = document.querySelector('button[type="submit"]');
+
+      if (isLoading) {
+          if (toolbar) {
+              toolbar.style.pointerEvents = 'none';
+              toolbar.style.opacity = '0.5';
+          }
+          if (saveBtn) {
+              saveBtn.disabled = true;
+          }
+      } else {
+          if (toolbar) {
+              toolbar.style.pointerEvents = '';
+              toolbar.style.opacity = '';
+          }
+          if (saveBtn) {
+              saveBtn.disabled = false;
+          }
+      }
+  }
+
+  function updateAllProgress() {
+      const container = document.getElementById("upload_progress_container");
+      const label = document.getElementById("upload_progress_filename");
+      const bar = document.getElementById("upload_progress_bar");
+
+      if (activeProgressMap.size === 0) {
+          container?.classList.add("hidden");
+          setEditorLoadingState(false);
+          return;
+      }
+
+      container?.classList.remove("hidden");
+      setEditorLoadingState(true);
+
+      let totalBytes = 0;
+      let loadedBytes = 0;
+      const filenames = [];
+
+      for (const item of activeProgressMap.values()) {
+          totalBytes += item.total;
+          loadedBytes += item.loaded;
+          filenames.push(item.name);
+      }
+
+      const overallPercent = totalBytes > 0 ? Math.round((loadedBytes / totalBytes) * 100) : 0;
+
+      if (label) {
+          if (activeProgressMap.size === 1) {
+              label.textContent = `Uploading ${filenames[0]}... ${overallPercent}%`;
+          } else {
+              label.textContent = `Uploading ${activeProgressMap.size} images... ${overallPercent}%`;
+          }
+      }
+
+      if (bar) {
+          bar.value = overallPercent;
+      }
+  }
+
+  // ─── 3-step presigned upload ─────────────────────────────────────────────
+  async function uploadImageToR2(file, onSuccess, onError) {
+      // Register initial state for progress aggregation
+      activeProgressMap.set(file, { loaded: 0, total: file.size, name: file.name });
+      updateAllProgress();
+
+      try {
+          const csrfToken = getCsrfToken();
+          const presignUrl = document.getElementById("new_note_body")?.dataset.uploadUrl;
+          if (!presignUrl) {
+              onError("Upload is not configured for this page.");
+              return;
+          }
+
+          // Step 1: Ask backend for presigned upload URL
+          const presignResp = await fetchWithTimeout(
+              presignUrl, {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                      "X-CSRFToken": csrfToken,
+                  },
+                  body: JSON.stringify({
+                      filename: file.name,
+                      mime_type: file.type,
+                      size: file.size,
+                  }),
+              },
+              30000
+          );
+
+          if (!presignResp.ok) {
+              let errorCode = "";
+              try {
+                  const errData = await presignResp.json();
+                  errorCode = errData.error;
+              } catch {}
+              console.error("[upload] Step 1 presign failed:", presignResp.status, errorCode);
+              onError(uploadErrorMessage(errorCode));
+              return;
+          }
+
+          const {
+              upload_url,
+              public_url,
+              complete_url,
+          } = await presignResp.json();
+
+          // Step 2: Upload directly to R2
+          await uploadFileToR2Async(
+              upload_url,
+              file,
+              (loaded, total) => {
+                  const item = activeProgressMap.get(file);
+                  if (item) {
+                      item.loaded = loaded;
+                      item.total = total;
+                      updateAllProgress();
+                  }
+              }
+          );
+
+          // Step 3: Tell backend upload finished
+          const completeResp = await fetchWithTimeout(
+              complete_url, {
+                  method: "POST",
+                  headers: {
+                      "X-CSRFToken": csrfToken,
+                  },
+              },
+              30000
+          );
+
+          let finalUrl = public_url;
+
+          if (completeResp.ok) {
+              const data = await completeResp.json();
+              finalUrl = data.url;
+          } else {
+              console.warn(
+                  "[upload] Step 3 failed. Backend will reconcile later."
+              );
+          }
+
+          onSuccess(finalUrl);
+      } catch (err) {
+          console.error("[upload]", err);
+
+          switch (err.message) {
+              case "timeout":
+                  onError("Upload timed out.");
+                  break;
+              case "networkError":
+                  onError("Network error while uploading.");
+                  break;
+              case "storageFailed":
+                  onError("Cloud storage rejected the upload.");
+                  break;
+              case "aborted":
+                  onError("Upload cancelled.");
+                  break;
+              default:
+                  onError("Image upload failed.");
+          }
+      } finally {
+          activeProgressMap.delete(file);
+          updateAllProgress();
+      }
+  }
+
+  // EasyMDE Initialisation 
+  function initNoteEditor(content) {
+      const el = (content.matches && content.matches('#new_note_body')) ?
+          content :
+          (content.querySelector && content.querySelector('#new_note_body'));
+      if (!el || el.dataset.easymdeInit) return;
+      el.dataset.easymdeInit = 'true';
+
+      new EasyMDE({
+          element: el,
+          spellChecker: false,
+          placeholder: 'Start typing...',
+          status: ['lines', 'words'],
+          toolbar: [
+              'heading', '|',
+              'bold', 'italic', 'strikethrough', '|',
+              'quote', 'unordered-list', 'ordered-list', '|',
+              'code', '|',
+              'link', 'upload-image', 'table',
+          ],
+
+          // Custom upload function takes full control of the upload lifecycle.
+          // When imageUploadFunction is set, imageUploadEndpoint is ignored by EasyMDE.
+          uploadImage: true,
+          imageUploadFunction: uploadImageToR2,
+
+          // Client-side pre-flight guards (EasyMDE runs these BEFORE calling
+          // imageUploadFunction, so the user gets instant feedback before any network call).
+          imageAccept: 'image/png, image/jpeg, image/gif, image/webp',
+          imageMaxSize: 5 * 1024 * 1024, // keep in sync with MAX_IMAGE_SIZE in views.py
+          imagePathAbsolute: true,
+
+          // All errors — both EasyMDE's built-in pre-flight and our custom errors
+          // passed via onError() — land here. We dispatch as the 'show-toast'
+          // CustomEvent that the Alpine toastManager in dashboard_base.html listens for.
+          errorCallback: (message) => {
+              window.dispatchEvent(new CustomEvent('show-toast', {
+                  detail: {
+                      message,
+                      level: 'error'
+                  },
+              }));
+          },
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+      initNoteEditor(document.body);
+      htmx.onLoad((content) => initNoteEditor(content));
+  });
+</script>
+
+{% endblock extra_scripts %}

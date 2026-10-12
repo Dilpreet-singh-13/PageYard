@@ -1,0 +1,67 @@
+{# Keyboard shortcuts modal — triggered by `?` or `Ctrl+/` #}
+{# This is included in dashboard_base.html #}
+
+<dialog id="keyboard_shortcuts_modal" class="modal">
+    <div class="modal-box rounded-box max-w-md">
+        <h3 class="text-lg font-bold text-base-content mb-4">Keyboard Shortcuts</h3>
+
+        <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between py-1.5">
+                <span class="text-sm text-base-content/70">Open this help</span>
+                <div class="flex gap-1">
+                    <kbd class="kbd kbd-sm">?</kbd>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between py-1.5">
+                <span class="text-sm text-base-content/70">Quick search</span>
+                <div class="flex gap-1">
+                    <kbd class="kbd kbd-sm">Ctrl</kbd>
+                    <kbd class="kbd kbd-sm">K</kbd>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between py-1.5">
+                <span class="text-sm text-base-content/70">Create new note</span>
+                <div class="flex gap-1">
+                    <kbd class="kbd kbd-sm">N</kbd>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-action mt-6">
+            <form method="dialog">
+                <button class="btn btn-sm btn-ghost">Close</button>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+    document.addEventListener('keydown', (e) => {
+        // Don't trigger shortcuts when typing in inputs/textareas
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
+
+        // `?` — open shortcuts modal
+        if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            document.getElementById('keyboard_shortcuts_modal')?.showModal();
+        }
+
+        // `Ctrl+K` — focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            window.location.href = '{% url "notes:notes_search_page" %}';
+        }
+
+        // `N` — new note
+        if (e.key === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            window.location.href = '{% url "notes:new_note_page" %}';
+        }
+    });
+</script>
