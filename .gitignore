@@ -17,5 +17,12 @@ node_modules/
 
 # temp & secret files
 TODO.txt
+TODO.md
+db.sqlite3
 google_client_secret.json
 deployment_checklist.md
+
+
+# agent skills
+.agents/
+skills-lock.json

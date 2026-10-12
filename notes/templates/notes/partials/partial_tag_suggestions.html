@@ -1,0 +1,24 @@
+{% for tag in matching_tags %}
+    <li>
+        <button type="button"
+                hx-post="{% url 'notes:note_tag_add_page' note.id %}"
+                hx-vals='{"tag_id": "{{ tag.id }}"}'
+                hx-target="#note-tags-{{ note.id }}"
+                hx-swap="outerHTML"
+                class="w-full text-left px-3 py-2 text-sm hover:bg-base-200 truncate">
+            {{ tag.name }}
+        </button>
+    </li>
+{% endfor %}
+{% if query and not exact_match %}
+    <li>
+        <button type="button"
+                hx-post="{% url 'notes:note_tag_add_page' note.id %}"
+                hx-vals='{"tag_name": "{{ query }}"}'
+                hx-target="#note-tags-{{ note.id }}"
+                hx-swap="outerHTML"
+                class="w-full text-left px-3 py-2 text-sm text-primary font-semibold hover:bg-primary/10 truncate">
+            + Create "{{ query }}"
+        </button>
+    </li>
+{% endif %}

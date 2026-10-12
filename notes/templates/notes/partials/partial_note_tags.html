@@ -1,0 +1,41 @@
+{# Context needed: note, is_owner #}
+
+<div id="note-tags-{{ note.id }}" class="flex flex-wrap items-center gap-2">
+    
+    {# include each tag (ie include its partial html) #}
+    {% for tag in note.tags.all %}
+        {% include 'notes/partials/partial_tag_chip.html' with note=note tag=tag is_owner=is_owner %}
+    {% empty %}
+        {% if not is_owner %}
+            <span class="text-[10px] text-base-content/30 italic">No tags</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if is_owner and not note.is_trashed %}
+        <div x-data="{ adding: false }" class="relative" @keydown.escape="adding = false">
+            <!-- Tag add button -->
+            <button x-show="!adding" 
+                    @click="adding = true; $nextTick(() => $refs.tagInput.focus())"
+                    type="button"
+                    class="badge badge-ghost border-dashed border-base-300 gap-1 py-2.5 px-3 
+                    text-[10px] font-bold uppercase tracking-wider hover:border-primary hover:text-primary transition-colors">
+                + Add Tag
+            </button>
+
+            <div x-show="adding" x-cloak @click.outside="adding = false" class="flex flex-col">
+                <input x-ref="tagInput" type="text"
+                    placeholder="Search or create..."
+                    name="q"
+                    hx-get="{% url 'notes:note_tag_search_page' note.id %}"
+                    hx-trigger="input changed delay:300ms, focus"
+                    hx-target="#tag-suggestions-{{ note.id }}"
+                    hx-swap="innerHTML"
+                    class="input input-sm input-bordered w-40 focus:border-primary focus:outline-hidden" />
+
+                <ul id="tag-suggestions-{{ note.id }}"
+                    class="absolute top-full mt-1 z-20 bg-base-100 border border-base-200 rounded-box shadow-xl w-48 max-h-48 overflow-y-auto">
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+</div>

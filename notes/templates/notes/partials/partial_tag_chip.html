@@ -1,0 +1,18 @@
+<span id="note-{{ note.id }}-tag-{{ tag.id }}"
+    class="badge bg-secondary/10 text-secondary border-0 gap-1.5 py-2.5 px-2.5 text-[10px] font-bold uppercase tracking-wider tooltip tooltip-bottom"
+    data-tip="{{ tag.name }}">
+    <span class="truncate max-w-[80px]">{{ tag.name }}</span>
+
+    {% if is_owner and not note.is_trashed %}
+        <!-- Remove tag button -->
+        <button type="button"
+                hx-delete="{% url 'notes:note_tag_remove_page' note.id tag.id %}"
+                hx-target="#note-{{ note.id }}-tag-{{ tag.id }}"
+                hx-swap="outerHTML swap:0.15s"
+                class="inline-flex items-center justify-center shrink-0 w-3.5 h-3.5 p-0 m-0 border-0 bg-transparent leading-none hover:text-error transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-3 pointer-events-none shrink-0">
+                <path fill-rule="evenodd" d="M10 8.586 5.05 3.636 3.636 5.05 8.586 10l-4.95 4.95 1.414 1.414L10 11.414l4.95 4.95 1.414-1.414L11.414 10l4.95-4.95-1.414-1.414L10 8.586Z" clip-rule="evenodd" />
+            </svg>
+        </button>
+    {% endif %}
+</span>

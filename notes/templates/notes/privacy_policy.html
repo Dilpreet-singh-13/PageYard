@@ -1,4 +1,6 @@
-{% extends 'notes/base.html' %}
+{% extends 'notes/public_base.html' %}
+
+{% block title %}Privacy Policy | PageYard{% endblock title %}
 
 {% block main %}
 <main class="max-w-3xl mx-auto w-full px-4 py-8 md:py-12 space-y-8 flex-grow">
@@ -8,7 +10,7 @@
         <p class="text-base-content/60 mt-2 text-sm md:text-base">Last updated: April 05, 2026</p>
     </div>
 
-    <div class="card bg-base-100 rounded-3xl shadow-sm border border-base-200/80">
+    <div class="card bg-base-100 rounded-box shadow-sm border border-base-200/80">
         <div class="card-body p-6 md:p-8 space-y-8">
 
             <div>
@@ -81,7 +83,7 @@
                 <h2 class="text-xs font-bold border-b border-base-200/50 pb-3 mb-4 uppercase tracking-widest text-base-content/50">Contact</h2>
                 <div class="text-base-content/80 text-sm md:text-base space-y-2 flex flex-col items-start">
                     <p>If you have any questions, contact:</p>
-                    <a href="mailto:your-email@example.com" class="btn btn-sm btn-outline btn-primary rounded-xl mt-2">
+                    <a href="mailto:your-email@example.com" class="btn btn-sm btn-outline btn-primary mt-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 mr-1">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                         </svg>

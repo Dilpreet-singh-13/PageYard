@@ -1,6 +1,6 @@
 <a
   href="{% url 'notes:note_detail_page' note.id %}"
-  class="group relative card bg-base-100 shadow-sm border border-base-200/80 hover:border-primary hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 rounded-2xl h-full overflow-hidden"
+  class="group relative card bg-base-100 shadow-sm border border-base-200/80 hover:border-primary hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 h-full overflow-hidden {% if note.is_starred and not note.is_trashed %}border-l-4 border-l-warning{% endif %} {% if note.is_trashed %}opacity-80 border-error/20{% endif %}"
 >
   <div class="card-body p-5 flex flex-col h-full min-w-0">
     <div class="flex justify-between items-start w-full mb-2 gap-3">
@@ -11,39 +11,64 @@
       </h3>
 
       <div class="shrink-0 pt-0.5">
-        {% include 'notes/partials/partial_star_button.html' with note=note %}
+        {% if note.is_trashed %}
+          <button type="button"
+                  hx-post="{% url 'notes:restore_note_page' note.id %}"
+                  hx-swap="outerHTML"
+                  class="btn btn-square btn-ghost btn-sm shrink-0 text-success hover:bg-success/10"
+                  title="Restore Note"
+                  @click.stop>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+            </svg>
+          </button>
+        {% else %}
+          {% include 'notes/partials/partial_star_button.html' with note=note %}
+        {% endif %}
       </div>
     </div>
 
     <p
       class="text-sm text-base-content/60 line-clamp-3 leading-relaxed mb-4 grow"
     >
-      {% if note.raw_content %} {{ note.raw_content }} {% else %}
-      <span class="italic opacity-40">No additional content...</span>
+      {% if note.plain_preview %}
+        {{ note.plain_preview }}
+      {% elif note.raw_content %}
+        {{ note.raw_content|truncatechars:250 }}
+      {% else %}
+        <span class="italic opacity-40">No additional content...</span>
       {% endif %}
     </p>
 
     <div
       class="mt-auto flex items-center justify-between w-full pt-3 border-t border-base-100 group-hover:border-base-200/50 transition-colors gap-2 min-w-0"
     >
-      {% if note.group %}
-      <span
-        class="badge bg-secondary/10 text-secondary border-0 h-auto py-1 px-2.5 rounded-lg inline-flex items-center min-w-0 overflow-hidden max-w-[60%]"
-      >
-        <span class="truncate text-xs font-medium">
-          {{ note.group.name }}
-        </span>
-      </span>
-      {% else %}
-      <span class="text-[10px] text-base-content/30 italic min-w-0"
-        >Uncategorized</span
-      >
-      {% endif %}
+      <!-- Note tags -->
+      {% with tag_count=note.tags.all|length %}
+        {% if tag_count %}
+        <div class="flex items-center gap-1 min-w-0 overflow-hidden">
+          {% for tag in note.tags.all|slice:":2" %}
+            <span class="badge bg-secondary/10 text-secondary border-0 h-auto py-1 px-2.5 text-xs font-medium truncate max-w-[80px]">
+              {{ tag.name }}
+            </span>
+          {% endfor %}
+          {% if tag_count > 2 %}
+            <span class="text-[10px] text-base-content/40 font-semibold">+{{ tag_count|add:"-2" }}</span>
+          {% endif %}
+        </div>
+        {% else %}
+        <span class="text-[10px] text-base-content/30 italic min-w-0">No tags</span>
+        {% endif %}
+      {% endwith %}
 
       <span
         class="text-[10px] shrink-0 font-medium opacity-40 uppercase tracking-widest whitespace-nowrap"
       >
-        {{ note.updated_at|timesince }} ago
+        {% if note.is_trashed %}
+          Deleted {{ note.trashed_at|default:note.updated_at|timesince }} ago
+        {% else %}
+          {{ note.updated_at|timesince }} ago
+        {% endif %}
       </span>
     </div>
   </div>

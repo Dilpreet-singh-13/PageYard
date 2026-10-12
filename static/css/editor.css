@@ -1,0 +1,111 @@
+/*
+ * EasyMDE chrome/style overrides.
+ * Loaded only on note_edit.html.
+ * Known issue: DaisyUI provides some util like .table which affects the
+ * classes EasyMDE generates — the .table width/radius rule below fixes it.
+ */
+
+/* Container */
+.EasyMDEContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Toolbar */
+.EasyMDEContainer .editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+
+  border: none;
+  border-bottom: 1px solid var(--color-base-200);
+  background: var(--color-base-100);
+  border-radius: 0;
+  opacity: 1;
+  padding: 0.75rem 1.5rem;
+}
+
+/* Remove EasyMDE's default float clearing pseudo-elements */
+.EasyMDEContainer .editor-toolbar::before,
+.EasyMDEContainer .editor-toolbar::after {
+  display: none;
+}
+
+/* Toolbar Buttons */
+.EasyMDEContainer .editor-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  margin: 0;
+
+  color: var(--color-base-content);
+  border-radius: var(--radius-field);
+  border: 1px solid transparent;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+/* Hover: neutral tint */
+.EasyMDEContainer .editor-toolbar button:hover {
+  background: var(--color-base-200);
+  border-color: transparent;
+}
+
+/* Active/toggled (cursor is inside **bold**, etc.): branded tint, distinct from hover */
+.EasyMDEContainer .editor-toolbar button.active {
+  background: color-mix(in oklch, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  border-color: transparent;
+}
+
+/* Elegant Separator Line */
+.EasyMDEContainer .editor-toolbar i.separator {
+  display: inline-block;
+  width: 1px;
+  height: 1.25rem;
+  background-color: var(--color-base-300);
+  color: transparent;
+  margin: 0 0.25rem;
+}
+
+/* DaisyUI .table collision fix */
+.EasyMDEContainer .editor-toolbar button.table {
+  width: 2.25rem !important;
+  border-radius: var(--radius-field) !important;
+}
+
+/* Editor — monospace for markdown source: #, *, -, and code fences need to
+   line up and read as syntax, the same reason every code editor does this. */
+.EasyMDEContainer .CodeMirror {
+  flex: 1 1 auto;
+  height: 0;
+  min-height: 0;
+
+  border: none;
+  background: transparent;
+  color: var(--color-base-content);
+
+  padding: 1.5rem;
+
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.EasyMDEContainer .CodeMirror-cursor {
+  border-color: var(--color-primary);
+}
+
+/* Status bar */
+.EasyMDEContainer .editor-statusbar {
+  border-top: 1px solid var(--color-base-200);
+  padding: 0.5rem 1.5rem;
+  color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
