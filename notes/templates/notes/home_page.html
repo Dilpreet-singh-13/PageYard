@@ -1,213 +1,371 @@
 {% extends 'notes/public_base.html' %}
 
-{% block title %}PageYard | Your Personal Knowledge Space{% endblock title %}
+{% block title %}PageYard — markdown notes, no noise{% endblock title %}
+
 {% block meta %}
-<meta name="description" content="PageYard — the modern, distraction-free knowledge base. Create, organize, and find your notes effortlessly with smart tags, Markdown, and real-time search.">
+<meta name="description" content="Write in plain Markdown, organise with tags, find anything with one keystroke. Free, open source.">
 {% endblock meta %}
 
 {% block main %}
+<div class="flex flex-col overflow-x-clip">
 
-{# ── Hero Section ──────────────────────────────────────────── #}
-<section class="hero min-h-[80vh] relative overflow-hidden">
+    {# ── Hero · Stage posture: text left, product right ─────────── #}
+    <section class="min-h-[100dvh] flex items-center relative">
+        <div class="max-w-6xl mx-auto px-6 lg:px-10 w-full py-20 lg:py-0">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
-    <div class="hero-content w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-16 items-center px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        {# Text side #}
-        <div class="flex-1 text-center lg:text-left">
-            <div class="inline-block px-3 py-1 rounded-selector bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4">
-                Open Source
+                {# Text block — columns 1–5 #}
+                <div class="lg:col-span-5 flex flex-col gap-6">
+                    <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-base-content leading-[1.06] text-balance max-w-[20ch] overflow-wrap-break-word min-w-0">
+                        Your notes, plain Markdown, nothing else.
+                    </h1>
+                    <p class="text-base text-base-content/70 leading-relaxed max-w-[55ch] text-pretty">
+                        Write, tag, search. PageYard stores every note as raw Markdown you can take anywhere.
+                    </p>
+
+                    <div class="flex flex-wrap items-center gap-3 pt-2">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'notes:dashboard' %}"
+                               class="btn btn-primary rounded-field text-primary-content font-semibold px-6 border-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                                Open workspace
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account_signup' %}"
+                               class="btn btn-primary rounded-field text-primary-content font-semibold px-6 border-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                                Start writing — free
+                            </a>
+                            <a href="{% url 'account_login' %}"
+                               class="btn btn-ghost rounded-field text-base-content/70 hover:text-base-content font-medium px-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                                Sign in
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Product slot — columns 6–12: the live document canvas #}
+                <div class="lg:col-span-7"
+                     x-data="{
+                         tab: 'rendered',
+                         task1: true,
+                         task2: true,
+                         task3: false,
+                         starred: true
+                     }">
+                    <div class="rounded-box border border-base-300 bg-base-100 shadow-sm overflow-hidden">
+
+                        {# Document chrome bar #}
+                        <div class="flex items-center justify-between px-5 py-2.5 border-b border-base-200 bg-base-200/40">
+                            <div class="flex items-center gap-2 font-mono text-xs text-base-content/60">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-3.5 text-primary shrink-0">
+                                    <path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 0 0 3 3.5v13A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V7.621a1.5 1.5 0 0 0-.44-1.06l-4.12-4.122A1.5 1.5 0 0 0 11.378 2H4.5Zm2.25 8.5a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Zm0 3a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z" clip-rule="evenodd" />
+                                </svg>
+                                <span>project-notes.md</span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <div role="tablist" class="flex items-center bg-base-300/50 p-0.5 rounded-field text-xs font-medium">
+                                    <button type="button" role="tab"
+                                            @click="tab = 'rendered'"
+                                            :class="tab === 'rendered' ? 'bg-base-100 text-base-content shadow-xs font-semibold' : 'text-base-content/60 hover:text-base-content'"
+                                            class="px-2.5 py-1 rounded-field focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary">
+                                        Preview
+                                    </button>
+                                    <button type="button" role="tab"
+                                            @click="tab = 'source'"
+                                            :class="tab === 'source' ? 'bg-base-100 text-base-content shadow-xs font-semibold' : 'text-base-content/60 hover:text-base-content'"
+                                            class="px-2.5 py-1 rounded-field font-mono focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary">
+                                        .md
+                                    </button>
+                                </div>
+                                <button type="button"
+                                        @click="starred = !starred"
+                                        class="btn btn-ghost btn-xs btn-square rounded-field focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+                                        :class="starred ? 'text-secondary' : 'text-base-content/40 hover:text-base-content'"
+                                        aria-label="Toggle favourite">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+                                        <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {# Rendered preview tab #}
+                        <div x-show="tab === 'rendered'" x-cloak class="p-6 sm:p-8 space-y-5 bg-base-100 min-h-80">
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="badge badge-soft badge-primary text-xs">architecture</span>
+                                <span class="badge badge-soft badge-accent text-xs">engineering</span>
+                            </div>
+                            <h2 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-base-content overflow-wrap-break-word min-w-0">
+                                Distraction-free flow
+                            </h2>
+                            <p class="text-sm text-base-content/75 leading-relaxed max-w-[60ch]">
+                                Documents render with balanced proportions and optimal line length. You own every word in raw Markdown.
+                            </p>
+
+                            {# Callout #}
+                            <div class="border-l-2 border-primary bg-primary/5 p-4 rounded-r-box text-xs sm:text-sm text-base-content/80 leading-relaxed">
+                                Tools should stay invisible. PageYard provides the speed, you bring the words.
+                            </div>
+
+                            {# Task checklist #}
+                            <div class="space-y-1.5 text-sm">
+                                <label class="flex items-center gap-3 cursor-pointer select-none p-1.5 rounded-field hover:bg-base-200/50">
+                                    <input type="checkbox" x-model="task1" class="checkbox checkbox-primary checkbox-xs rounded-selector">
+                                    <span :class="task1 ? 'line-through text-base-content/45' : 'text-base-content/80'" class="text-xs sm:text-sm">PostgreSQL full-text search indexing</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer select-none p-1.5 rounded-field hover:bg-base-200/50">
+                                    <input type="checkbox" x-model="task2" class="checkbox checkbox-primary checkbox-xs rounded-selector">
+                                    <span :class="task2 ? 'line-through text-base-content/45' : 'text-base-content/80'" class="text-xs sm:text-sm">Presigned image uploads to cloud storage</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer select-none p-1.5 rounded-field hover:bg-base-200/50">
+                                    <input type="checkbox" x-model="task3" class="checkbox checkbox-primary checkbox-xs rounded-selector">
+                                    <span :class="task3 ? 'line-through text-base-content/45' : 'text-base-content/80'" class="text-xs sm:text-sm">Global <kbd class="kbd kbd-xs">⌘K</kbd> command palette</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {# Markdown source tab #}
+                        <div x-show="tab === 'source'" x-cloak class="p-6 sm:p-8 font-mono text-xs sm:text-[13px] leading-relaxed bg-base-200/30 text-base-content/85 min-h-80 space-y-1.5">
+                            <div class="text-base-content/35">---</div>
+                            <div><span class="text-primary font-semibold">title:</span> Distraction-free flow</div>
+                            <div><span class="text-primary font-semibold">tags:</span> [architecture, engineering]</div>
+                            <div><span class="text-primary font-semibold">starred:</span> true</div>
+                            <div class="text-base-content/35">---</div>
+                            <div class="h-3"></div>
+                            <div class="text-primary font-semibold text-sm">## Distraction-free flow</div>
+                            <div class="h-1"></div>
+                            <p class="text-base-content/65">Documents render with balanced proportions and optimal line length. You own every word in raw **Markdown**.</p>
+                            <div class="h-2"></div>
+                            <div class="text-base-content/55">&gt; Tools should stay invisible.</div>
+                            <div class="h-2"></div>
+                            <div><span class="text-accent">- [x]</span> PostgreSQL full-text search indexing</div>
+                            <div><span class="text-accent">- [x]</span> Presigned image uploads to cloud storage</div>
+                            <div><span class="text-accent">- [ ]</span> Global ⌘K command palette</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-base-content leading-[1.1]">
-                Your personal<br>
-                <span class="text-primary">knowledge space.</span>
-            </h1>
-            <p class="py-6 text-base sm:text-lg text-base-content/70 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                A simple, elegant note-taking app. Create pages in Markdown, organize with smart tags, and find anything with instant search.
+        </div>
+    </section>
+
+    {# ── Search section · Split: text right, interactive left ──── #}
+    <section class="py-28 sm:py-36 border-t border-base-200">
+        <div class="max-w-6xl mx-auto px-6 lg:px-10 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+
+                {# Interactive search — columns 1–7 #}
+                <div class="lg:col-span-7 order-2 lg:order-1"
+                     x-data="{
+                         q: 'postgres',
+                         items: [
+                             { id: 1, title: 'PostgreSQL Full-Text Search Tuning', tag: 'database', match: 'postgres', preview: 'Optimised GIN indexes for sub-10ms search across all notes.' },
+                             { id: 2, title: 'Replication and Failover Topology', tag: 'infra', match: 'postgres', preview: 'Hot standby replication with zero data-loss semantics.' },
+                             { id: 3, title: 'Kubernetes Pod Autoscaling', tag: 'devops', match: 'k8s', preview: 'Metrics-server setup for horizontal pod auto-scaler rules.' },
+                             { id: 4, title: 'Q4 Product Roadmap', tag: 'planning', match: 'roadmap', preview: 'Editor speed, tags, keyboard shortcuts.' }
+                         ],
+                         get results() {
+                             const s = this.q.toLowerCase();
+                             return this.items.filter(i =>
+                                 i.title.toLowerCase().includes(s) ||
+                                 i.preview.toLowerCase().includes(s) ||
+                                 i.tag.toLowerCase().includes(s)
+                             );
+                         }
+                     }">
+                    <div class="rounded-box border border-base-300 bg-base-100 p-5 sm:p-6 space-y-4">
+                        {# Search input #}
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.3-4.3"></path>
+                                </svg>
+                            </div>
+                            <input type="text"
+                                   x-model="q"
+                                   placeholder="Search notes…"
+                                   class="input w-full pl-10 pr-16 bg-base-200/60 border-base-300 rounded-field text-sm focus:bg-base-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1 pointer-events-none">
+                                <kbd class="kbd kbd-xs">⌘</kbd>
+                                <kbd class="kbd kbd-xs">K</kbd>
+                            </div>
+                        </div>
+
+                        {# Filter chips #}
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span class="text-base-content/45">Try:</span>
+                            <button type="button" @click="q = 'postgres'" class="badge badge-ghost text-base-content/65 hover:text-base-content font-mono focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary">postgres</button>
+                            <button type="button" @click="q = 'infra'" class="badge badge-ghost text-base-content/65 hover:text-base-content font-mono focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary">infra</button>
+                            <button type="button" @click="q = 'roadmap'" class="badge badge-ghost text-base-content/65 hover:text-base-content font-mono focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary">roadmap</button>
+                        </div>
+
+                        {# Results #}
+                        <div class="space-y-2">
+                            <template x-for="item in results" :key="item.id">
+                                <div class="p-3 rounded-field bg-base-200/30 hover:bg-base-200/60 border border-base-200/50 flex flex-col gap-1 cursor-default">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="font-semibold text-xs sm:text-sm text-base-content line-clamp-1" x-text="item.title"></span>
+                                        <span class="badge badge-soft badge-primary text-[10px] shrink-0" x-text="item.tag"></span>
+                                    </div>
+                                    <p class="text-[11px] text-base-content/50 line-clamp-1" x-text="item.preview"></p>
+                                </div>
+                            </template>
+                            <div x-show="results.length === 0" x-cloak class="p-4 text-center text-xs text-base-content/45">
+                                No notes match that query.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Text block — columns 8–12 #}
+                <div class="lg:col-span-5 order-1 lg:order-2 flex flex-col gap-4">
+                    <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-base-content overflow-wrap-break-word min-w-0 text-balance max-w-[30ch]">
+                        Find anything with one keystroke.
+                    </h2>
+                    <p class="text-sm text-base-content/65 leading-relaxed max-w-[55ch]">
+                        Press <kbd class="kbd kbd-xs">⌘K</kbd> from anywhere in the app. PageYard searches titles, bodies and tags in real time with debounced HTMX streaming.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── Tags and safety · two cards side by side ─────────────── #}
+    <section class="py-28 sm:py-36">
+        <div class="max-w-6xl mx-auto px-6 lg:px-10 w-full">
+            <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-base-content mb-12 overflow-wrap-break-word min-w-0 text-balance max-w-[30ch]">
+                Organised without folders.
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {# Tags card #}
+                <div class="rounded-box border border-base-200 bg-base-100 p-7 sm:p-9 flex flex-col justify-between gap-6">
+                    <div class="space-y-3">
+                        <h3 class="font-display text-xl sm:text-2xl font-bold tracking-tight text-base-content overflow-wrap-break-word min-w-0">
+                            Tags over rigid folder trees.
+                        </h3>
+                        <p class="text-xs sm:text-sm text-base-content/65 leading-relaxed max-w-[55ch]">
+                            A note on database architecture can be
+                            <span class="text-primary font-medium">backend</span>,
+                            <span class="text-accent font-medium">reading</span> and
+                            <span class="text-secondary font-medium">q4</span>
+                            all at once. Filter freely across any dimension.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-base-200 flex flex-wrap gap-2">
+                        <span class="badge badge-soft badge-primary text-xs">research</span>
+                        <span class="badge badge-soft badge-accent text-xs">architecture</span>
+                        <span class="badge badge-soft badge-secondary text-xs">drafts</span>
+                        <span class="badge badge-ghost text-xs text-base-content/55">books</span>
+                        <span class="badge badge-ghost text-xs text-base-content/55">ideas</span>
+                    </div>
+                </div>
+
+                {# 30-day trash card #}
+                <div class="rounded-box border border-base-200 bg-base-100 p-7 sm:p-9 flex flex-col justify-between gap-6">
+                    <div class="space-y-3">
+                        <h3 class="font-display text-xl sm:text-2xl font-bold tracking-tight text-base-content overflow-wrap-break-word min-w-0">
+                            30-day trash cushion.
+                        </h3>
+                        <p class="text-xs sm:text-sm text-base-content/65 leading-relaxed max-w-[55ch]">
+                            Trashed notes stay archived for 30 full days before automatic purging. Restore any note and its tags with one click.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-base-200">
+                        <div class="flex items-center justify-between p-3 rounded-field bg-error/5 border border-error/10 text-xs">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-error shrink-0">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                </svg>
+                                <span class="font-mono text-base-content/70">system-overview-v1.md</span>
+                            </div>
+                            <button type="button" class="text-success font-semibold flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary" aria-label="Restore note">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                                </svg>
+                                Restore
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── Markdown showcase · Rows composition ─────────────────── #}
+    <section class="py-28 sm:py-36 bg-base-200/40 border-y border-base-200">
+        <div class="max-w-6xl mx-auto px-6 lg:px-10 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+                <div class="lg:col-span-5 lg:sticky lg:top-24 flex flex-col gap-4">
+                    <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-base-content overflow-wrap-break-word min-w-0 text-balance max-w-[30ch]">
+                        Markdown without friction.
+                    </h2>
+                    <p class="text-sm text-base-content/65 leading-relaxed max-w-[55ch]">
+                        Write in a clean editor with syntax highlighting, inline images, tables and code blocks. Your data stays transparent, portable Markdown text.
+                    </p>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-5 rounded-box bg-base-100 border border-base-200 space-y-2">
+                            <span class="font-mono text-primary font-semibold text-sm"># Headings</span>
+                            <p class="text-xs text-base-content/55">Rendered in your display serif with balanced proportions.</p>
+                        </div>
+                        <div class="p-5 rounded-box bg-base-100 border border-base-200 space-y-2">
+                            <span class="font-mono text-accent font-semibold text-sm">- [x] Tasks</span>
+                            <p class="text-xs text-base-content/55">Interactive checklists that track completion inside notes.</p>
+                        </div>
+                        <div class="p-5 rounded-box bg-base-100 border border-base-200 space-y-2">
+                            <span class="font-mono text-secondary font-semibold text-sm">```code```</span>
+                            <p class="text-xs text-base-content/55">Fenced blocks styled with JetBrains Mono.</p>
+                        </div>
+                        <div class="p-5 rounded-box bg-base-100 border border-base-200 space-y-2">
+                            <span class="font-mono text-base-content/70 font-semibold text-sm">![img](…)</span>
+                            <p class="text-xs text-base-content/55">Drag and drop images. Uploaded and served from cloud storage.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── Custom CSS · Statement composition ───────────────────── #}
+    <section class="py-28 sm:py-36">
+        <div class="max-w-6xl mx-auto px-6 lg:px-10 w-full text-center flex flex-col items-center gap-6">
+            <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-base-content overflow-wrap-break-word min-w-0 text-balance max-w-[24ch]">
+                Style notes your way.
+            </h2>
+            <p class="text-sm sm:text-base text-base-content/60 leading-relaxed max-w-lg text-pretty">
+                Add custom CSS per note to control how your rendered Markdown looks. Typography, spacing, colours — all yours.
             </p>
-            <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+        </div>
+    </section>
+
+    {# ── Close · the action again in a short band ─────────────── #}
+    <section class="py-20 sm:py-28 bg-base-200/40 border-t border-base-200">
+        <div class="max-w-3xl mx-auto px-6 lg:px-10 w-full text-center flex flex-col items-center gap-6">
+            <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-base-content overflow-wrap-break-word min-w-0 text-balance max-w-[24ch]">
+                Ready to write?
+            </h2>
+            <p class="text-sm text-base-content/60 leading-relaxed max-w-md text-pretty">
+                Open source, free, and built for people who care about their words.
+            </p>
+
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'notes:dashboard' %}" class="btn btn-primary btn-lg rounded-full shadow-xl shadow-primary/30 hover:shadow-primary/50 border-0 text-primary-content group transition-all px-8">
-                        Go to Dashboard
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 group-hover:translate-x-1 transition-transform">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                        </svg>
+                    <a href="{% url 'notes:dashboard' %}"
+                       class="btn btn-primary rounded-field text-primary-content font-semibold px-6 border-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                        Go to workspace
                     </a>
                 {% else %}
-                    <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg rounded-full shadow-xl shadow-primary/30 hover:shadow-primary/50 border-0 text-primary-content group transition-all px-8">
-                        Get Started Free
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 group-hover:translate-x-1 transition-transform">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                        </svg>
-                    </a>
-                    <a href="{% url 'account_login' %}" class="btn btn-ghost btn-lg rounded-full px-8 text-base-content/70 hover:text-base-content">
-                        Log In
+                    <a href="{% url 'account_signup' %}"
+                       class="btn btn-primary rounded-field text-primary-content font-semibold px-6 border-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                        Create your free account
                     </a>
                 {% endif %}
             </div>
         </div>
+    </section>
 
-        {# Markdown → rendered split preview #}
-        <div class="flex-1 w-full max-w-xl lg:max-w-2xl">
-            <div class="rounded-box border border-base-300 bg-base-100 shadow-2xl overflow-hidden">
-                {# Window chrome #}
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-base-300 bg-base-200/60">
-                    <div class="flex gap-1.5" aria-hidden="true">
-                        <span class="w-2.5 h-2.5 rounded-full bg-error/40"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-warning/40"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-success/40"></span>
-                    </div>
-                    <span class="ml-2 font-mono text-xs text-base-content/50">roadmap.md</span>
-                </div>
-
-                {# Split content: source vs rendered #}
-                <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-base-300">
-
-                    {# Markdown source pane #}
-                    <div class="p-5 bg-base-200/30">
-                        <div class="font-sans text-[10px] uppercase tracking-wider text-base-content/40 font-bold mb-3">Markdown</div>
-                        <div class="font-mono text-[13px] leading-relaxed space-y-1.5">
-                            <div class="text-primary">## Q3 Roadmap</div>
-                            <div class="h-1.5"></div>
-                            <div class="text-base-content/70">Ship the <span class="text-secondary">**tagging**</span> system</div>
-                            <div class="text-base-content/70">and <span class="text-secondary">**instant search**</span>.</div>
-                            <div class="h-1.5"></div>
-                            <div class="text-base-content/70"><span class="text-accent">- [x]</span> Backend rendering</div>
-                            <div class="text-base-content/70"><span class="text-accent">- [ ]</span> KaTeX support</div>
-                            <div class="text-base-content/70"><span class="text-accent">- [ ]</span> Mermaid diagrams</div>
-                        </div>
-                    </div>
-
-                    {# Rendered output pane #}
-                    <div class="p-5 bg-base-100">
-                        <div class="font-sans text-[10px] uppercase tracking-wider text-base-content/40 font-bold mb-3">Rendered</div>
-                        <h4 class="font-display font-semibold text-lg text-base-content mb-2">Q3 Roadmap</h4>
-                        <p class="text-sm text-base-content/70 leading-relaxed mb-3">
-                            Ship the <strong class="text-base-content font-semibold">tagging</strong> system and <strong class="text-base-content font-semibold">instant search</strong>.
-                        </p>
-                        <ul class="space-y-2 text-sm mb-4">
-                            <li class="flex items-center gap-2 text-base-content/40 line-through decoration-success/50">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 shrink-0 text-success">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                </svg>
-                                Backend rendering
-                            </li>
-                            <li class="flex items-center gap-2 text-base-content/70">
-                                <span class="w-3.5 h-3.5 rounded-selector border border-base-300 shrink-0"></span>
-                                KaTeX support
-                            </li>
-                            <li class="flex items-center gap-2 text-base-content/70">
-                                <span class="w-3.5 h-3.5 rounded-selector border border-base-300 shrink-0"></span>
-                                Mermaid diagrams
-                            </li>
-                        </ul>
-                        <div class="flex gap-1.5">
-                            <span class="badge badge-sm bg-secondary/10 text-secondary border-0 font-mono">#roadmap</span>
-                            <span class="badge badge-sm bg-secondary/10 text-secondary border-0 font-mono">#q3</span>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{# ── Features Section ──────────────────────────────────────── #}
-<section class="py-20 px-4 sm:px-6 lg:px-8 bg-base-100">
-    <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-14">
-            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content">
-                Everything you need,<br>
-                <span class="text-primary">nothing you don't.</span>
-            </h2>
-            <p class="text-base text-base-content/60 mt-4 max-w-xl mx-auto">
-                A distraction-free workspace designed for clarity and speed.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-            {# Feature 1 #}
-            <div class="card bg-base-200/50 border border-base-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-box">
-                <div class="card-body p-6 md:p-8">
-                    <div class="w-12 h-12 rounded-selector bg-base-200 flex items-center justify-center mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-primary">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-base-content">Pages & Notes</h3>
-                    <p class="text-sm text-base-content/60 leading-relaxed">Write in Markdown with full syntax support — headings, lists, code blocks, tables, math (KaTeX), and embedded images.</p>
-                </div>
-            </div>
-
-            {# Feature 2 #}
-            <div class="card bg-base-200/50 border border-base-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-box">
-                <div class="card-body p-6 md:p-8">
-                    <div class="w-12 h-12 rounded-selector bg-base-200 flex items-center justify-center mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-secondary">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-base-content">Smart Tags</h3>
-                    <p class="text-sm text-base-content/60 leading-relaxed">Organize your knowledge with a flexible tagging system. Create, search, and filter by tags to find exactly what you need.</p>
-                </div>
-            </div>
-
-            {# Feature 3 #}
-            <div class="card bg-base-200/50 border border-base-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-box">
-                <div class="card-body p-6 md:p-8">
-                    <div class="w-12 h-12 rounded-selector bg-base-200 flex items-center justify-center mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-accent">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-base-content">Instant Search</h3>
-                    <p class="text-sm text-base-content/60 leading-relaxed">Full-text search powered by PostgreSQL. Filter by date range, tags, starred status — find any note in milliseconds.</p>
-                </div>
-            </div>
-
-            {# Feature 4 #}
-            <div class="card bg-base-200/50 border border-base-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-box">
-                <div class="card-body p-6 md:p-8">
-                    <div class="w-12 h-12 rounded-selector bg-base-200 flex items-center justify-center mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-warning">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-base-content">Trash & Recovery</h3>
-                    <p class="text-sm text-base-content/60 leading-relaxed">Accidentally deleted something? Notes stay in your trash for 30 days. Restore with a single click.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{# ── CTA Section ───────────────────────────────────────────── #}
-<section class="py-20 px-4 sm:px-6 lg:px-8 bg-base-200/60">
-    <div class="max-w-3xl mx-auto text-center">
-        <div class="card bg-gradient-to-br from-primary/10 via-base-100 to-secondary/10 border border-base-200 shadow-lg rounded-box">
-            <div class="card-body p-8 md:p-14">
-                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content">Ready to build your second brain?</h2>
-                <p class="text-base-content/60 mt-3 text-lg">Start organizing your thoughts today.</p>
-                <div class="mt-8">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'notes:dashboard' %}" class="btn btn-primary btn-lg rounded-full shadow-xl shadow-primary/30 hover:shadow-primary/50 border-0 text-primary-content px-10 group transition-all">
-                            Go to Dashboard
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 group-hover:translate-x-1 transition-transform">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                            </svg>
-                        </a>
-                    {% else %}
-                        <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg rounded-full shadow-xl shadow-primary/30 hover:shadow-primary/50 border-0 text-primary-content px-10 group transition-all">
-                            Sign Up Free
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 group-hover:translate-x-1 transition-transform">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                            </svg>
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
+</div>
 {% endblock main %}

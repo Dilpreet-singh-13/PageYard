@@ -1,75 +1,67 @@
 <a
   href="{% url 'notes:note_detail_page' note.id %}"
-  class="group relative card bg-base-100 shadow-sm border border-base-200/80 hover:border-primary hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 h-full overflow-hidden {% if note.is_starred and not note.is_trashed %}border-l-4 border-l-warning{% endif %} {% if note.is_trashed %}opacity-80 border-error/20{% endif %}"
+  class="group relative flex flex-col bg-base-100 rounded-xl p-4 sm:p-5 border border-base-200/90 shadow-2xs hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 h-full overflow-hidden {% if note.is_starred and not note.is_trashed %}ring-1 ring-warning/30 bg-gradient-to-b from-warning/[0.03] to-transparent{% endif %} {% if note.is_trashed %}opacity-75 border-error/20{% endif %}"
 >
-  <div class="card-body p-5 flex flex-col h-full min-w-0">
-    <div class="flex justify-between items-start w-full mb-2 gap-3">
-      <h3
-        class="card-title text-lg min-w-0 font-bold text-base-content group-hover:text-primary transition-colors tracking-tight line-clamp-2"
-      >
-        {{ note.title }}
-      </h3>
+  {# Top row: title & actions #}
+  <div class="flex justify-between items-start w-full gap-2 mb-1.5">
+    <h3 class="font-display font-semibold text-base text-base-content group-hover:text-primary transition-colors tracking-tight line-clamp-1 min-w-0">
+      {{ note.title|default:"Untitled Note" }}
+    </h3>
 
-      <div class="shrink-0 pt-0.5">
-        {% if note.is_trashed %}
-          <button type="button"
-                  hx-post="{% url 'notes:restore_note_page' note.id %}"
-                  hx-swap="outerHTML"
-                  class="btn btn-square btn-ghost btn-sm shrink-0 text-success hover:bg-success/10"
-                  title="Restore Note"
-                  @click.stop>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-            </svg>
-          </button>
-        {% else %}
-          {% include 'notes/partials/partial_star_button.html' with note=note %}
-        {% endif %}
-      </div>
-    </div>
-
-    <p
-      class="text-sm text-base-content/60 line-clamp-3 leading-relaxed mb-4 grow"
-    >
-      {% if note.plain_preview %}
-        {{ note.plain_preview }}
-      {% elif note.raw_content %}
-        {{ note.raw_content|truncatechars:250 }}
+    <div class="shrink-0 -mt-1 -mr-1">
+      {% if note.is_trashed %}
+        <button type="button"
+                hx-post="{% url 'notes:restore_note_page' note.id %}"
+                hx-swap="outerHTML"
+                class="btn btn-circle btn-ghost btn-xs text-success hover:bg-success/10 transition-colors"
+                title="Restore Note"
+                @click.stop>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+          </svg>
+        </button>
       {% else %}
-        <span class="italic opacity-40">No additional content...</span>
+        {% include 'notes/partials/partial_star_button.html' with note=note %}
       {% endif %}
-    </p>
+    </div>
+  </div>
 
-    <div
-      class="mt-auto flex items-center justify-between w-full pt-3 border-t border-base-100 group-hover:border-base-200/50 transition-colors gap-2 min-w-0"
-    >
-      <!-- Note tags -->
-      {% with tag_count=note.tags.all|length %}
-        {% if tag_count %}
-        <div class="flex items-center gap-1 min-w-0 overflow-hidden">
+  {# Note preview content #}
+  <p class="text-xs text-base-content/65 line-clamp-3 leading-relaxed mb-4 grow font-normal">
+    {% if note.plain_preview %}
+      {{ note.plain_preview }}
+    {% elif note.raw_content %}
+      {{ note.raw_content|truncatechars:180 }}
+    {% else %}
+      <span class="text-base-content/35 italic">Empty page...</span>
+    {% endif %}
+  </p>
+
+  {# Footer: tags & relative time #}
+  <div class="mt-auto flex items-center justify-between w-full pt-3 border-t border-base-200/60 gap-2 min-w-0">
+    {% with tag_count=note.tags.all|length %}
+      {% if tag_count %}
+        <div class="flex items-center gap-1.5 min-w-0 overflow-hidden">
           {% for tag in note.tags.all|slice:":2" %}
-            <span class="badge bg-secondary/10 text-secondary border-0 h-auto py-1 px-2.5 text-xs font-medium truncate max-w-[80px]">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-base-200/80 text-base-content/70 border border-base-300/40 truncate max-w-[85px]">
               {{ tag.name }}
             </span>
           {% endfor %}
           {% if tag_count > 2 %}
-            <span class="text-[10px] text-base-content/40 font-semibold">+{{ tag_count|add:"-2" }}</span>
+            <span class="text-[10px] text-base-content/40 font-medium shrink-0">+{{ tag_count|add:"-2" }}</span>
           {% endif %}
         </div>
-        {% else %}
-        <span class="text-[10px] text-base-content/30 italic min-w-0">No tags</span>
-        {% endif %}
-      {% endwith %}
+      {% else %}
+        <span class="text-[11px] text-base-content/35 italic">No tags</span>
+      {% endif %}
+    {% endwith %}
 
-      <span
-        class="text-[10px] shrink-0 font-medium opacity-40 uppercase tracking-widest whitespace-nowrap"
-      >
-        {% if note.is_trashed %}
-          Deleted {{ note.trashed_at|default:note.updated_at|timesince }} ago
-        {% else %}
-          {{ note.updated_at|timesince }} ago
-        {% endif %}
-      </span>
-    </div>
+    <span class="text-[11px] font-normal text-base-content/50 shrink-0 whitespace-nowrap">
+      {% if note.is_trashed %}
+        Deleted {{ note.trashed_at|default:note.updated_at|timesince }} ago
+      {% else %}
+        {{ note.updated_at|timesince }} ago
+      {% endif %}
+    </span>
   </div>
 </a>

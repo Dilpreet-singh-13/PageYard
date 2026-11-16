@@ -1,140 +1,156 @@
 {% extends 'notes/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}{{ note.title }} | PageYard{% endblock title %}
+{% block title %}{{ note.title|default:"Untitled Note" }} | PageYard{% endblock title %}
 
 {% block head %}
-  <!-- Pygments CSS file -->
+  <!-- Syntax highlighting & typography -->
   <link rel="stylesheet" href="{% static 'css/pygments.css' %}" />
   <link rel="stylesheet" href="{% static 'css/admonitions.css' %}" />
-
   <link rel="stylesheet" href="{% static 'css/prose.css' %}" />
 
+  <!-- Math & Diagrams -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 {% endblock head %}
 
-
 {% block main %}
+<div class="max-w-4xl mx-auto w-full flex flex-col gap-4">
 
-<article class="w-full h-full flex flex-col">
-  <div class="bg-base-100 rounded-box shadow-sm border border-base-200/80 flex flex-col h-full overflow-hidden relative">
+  {# ── Breadcrumbs ────────────────────────────────────────────── #}
+  <nav class="breadcrumbs text-xs text-base-content/50 px-1 py-0" aria-label="Breadcrumb">
+    <ul>
+      <li><a href="{% url 'notes:dashboard' %}" class="hover:text-primary transition-colors">Home</a></li>
+      <li><a href="{% url 'notes:all_notes_view' %}" class="hover:text-primary transition-colors">All Pages</a></li>
+      <li class="text-base-content/80 font-medium truncate max-w-[200px]">{{ note.title|default:"Untitled" }}</li>
+    </ul>
+  </nav>
 
-   {# Breadcrumbs #}
-   <div class="breadcrumbs text-xs px-4 md:px-6 pt-3 text-base-content/50">
-     <ul>
-       <li><a href="{% url 'notes:dashboard' %}" class="hover:text-primary transition-colors">Home</a></li>
-       <li><a href="{% url 'notes:all_notes_view' %}" class="hover:text-primary transition-colors">All Notes</a></li>
-       <li class="text-base-content/70 font-medium truncate max-w-[200px]">{{ note.title }}</li>
-     </ul>
-   </div>
+  {# ── Document Canvas ────────────────────────────────────────── #}
+  <article class="bg-base-100 rounded-2xl border border-base-200/90 shadow-2xs overflow-hidden flex flex-col">
 
-   <!-- top navbar -->
-   <header class="flex flex-col gap-4 p-4 md:px-6 md:pb-6 border-b border-base-200/50 bg-base-100/95 backdrop-blur-sm z-10 shrink-0">
-      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div class="flex flex-col gap-2 min-w-0 flex-1 w-full">
-          <h1 class="font-display text-2xl md:text-3xl font-semibold tracking-tight text-base-content leading-tight wrap-break-word whitespace-normal" style="overflow-wrap: anywhere;">
-            {{ note.title }}
-          </h1>
+    {# Trashed Note Banner #}
+    {% if note.is_trashed %}
+      <div class="bg-error/10 border-b border-error/20 px-6 py-3 flex items-center justify-between gap-3 text-xs text-error font-medium">
+        <span class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4 shrink-0">
+            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+          </svg>
+          This note is in your Bin and will be permanently deleted after 30 days.
+        </span>
+        <button type="button"
+                hx-post="{% url 'notes:restore_note_page' note.id %}"
+                class="btn btn-xs btn-outline btn-error rounded-md">
+          Restore
+        </button>
+      </div>
+    {% endif %}
 
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- Note Tags badges -->
-            {% include 'notes/partials/partial_note_tags.html' with note=note is_owner=is_owner %}
+    {# Document Header #}
+    <header class="p-6 sm:p-8 pb-5 border-b border-base-200/80 bg-base-100 flex flex-col gap-4">
+      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <h1 class="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-base-content leading-tight break-words flex-1 min-w-0">
+          {{ note.title|default:"Untitled Note" }}
+        </h1>
 
-            <!-- Note update time -->
+        {# Action Buttons #}
+        {% if is_owner %}
+          <div class="flex items-center gap-2 shrink-0 self-start">
             {% if note.is_trashed %}
-              <span class="text-xs text-base-content/40 font-medium tooltip" data-tip="{{ note.trashed_at|default:note.updated_at|date:'N j, Y g:i A' }}">
-                Deleted {{ note.trashed_at|default:note.updated_at|timesince }} ago
-              </span>
+              <button type="button"
+                      hx-post="{% url 'notes:restore_note_page' note.id %}"
+                      class="btn btn-primary btn-sm rounded-lg text-primary-content text-xs font-semibold gap-1.5 shadow-xs border-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                </svg>
+                <span>Restore</span>
+              </button>
+
+              <button type="button"
+                      title="Permanently Delete"
+                      hx-delete="{% url 'notes:note_delete_page' note.id %}"
+                      hx-confirm="Permanently delete '{{ note.title }}'? This cannot be undone."
+                      class="btn btn-ghost btn-square btn-sm text-error hover:bg-error/10 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              </button>
             {% else %}
-              <span class="text-xs text-base-content/40 font-medium tooltip" data-tip="{{ note.updated_at|date:'N j, Y g:i A' }}">
-                Updated {{ note.updated_at|timesince }} ago
-              </span>
+              <div class="flex items-center">
+                {% include 'notes/partials/partial_star_button.html' with note=note %}
+              </div>
+
+              <a href="{% url 'notes:note_edit_page' note.id %}"
+                 class="btn btn-primary btn-sm rounded-lg text-primary-content text-xs font-semibold gap-1.5 shadow-xs border-0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-3.5">
+                  <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.882L17.5 5.5a2.121 2.121 0 0 0-3-3L3.577 13.418a4 4 0 0 0-.882 1.344Z" />
+                </svg>
+                <span>Edit Page</span>
+              </a>
+
+              <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-square btn-sm rounded-lg text-base-content/60 hover:text-base-content">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+                    <path d="M10 3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM10 8.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM11.5 15.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z" />
+                  </svg>
+                </div>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-30 w-44 p-1.5 shadow-xl border border-base-200/80 text-xs">
+                  <li>
+                    <button type="button"
+                            class="text-error hover:bg-error/10 py-2"
+                            hx-post="{% url 'notes:trash_note_page' note.id %}">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
+                      <span>Move to Bin</span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
             {% endif %}
           </div>
-        </div>
-
-        {% if is_owner %}
-        <div class="flex justify-around items-center gap-2 w-full sm:w-auto shrink-0">
-          {% if note.is_trashed %}
-            <!-- Restore button -->
-            <button class="btn btn-soft btn-success rounded-full px-6 font-semibold" type="button"
-                    hx-post="{% url 'notes:restore_note_page' note.id %}">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 mr-1">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-              </svg>
-              Restore Note
-            </button>
-
-            <!-- Permanent Delete Button -->
-            <button class="btn btn-circle btn-error btn-sm text-error-content hover:bg-error/80 transition-colors" type="button"
-                    title="Delete Permanently"
-                    hx-delete="{% url 'notes:note_delete_page' note.id %}"
-                    hx-confirm="Permanently delete '{{ note.title }}'? This cannot be undone.">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-            </button>
-          {% else %}
-            <div class="btn btn-circle btn-ghost btn-sm hover:bg-base-200">
-               {% include 'notes/partials/partial_star_button.html' with note=note %}
-            </div>
-
-            <div class="h-6 w-px bg-base-200 mx-1 hidden sm:block"></div>
-
-            <a href="{% url 'notes:note_edit_page' note.id %}"
-               class="btn btn-soft btn-primary rounded-full px-6 font-semibold">
-              Edit Note
-            </a>
-            
-            {# Kebab menu for less-used actions on mobile #}
-            <details class="dropdown dropdown-end">
-              <summary class="btn btn-circle btn-ghost btn-sm text-base-content/60 hover:text-error">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                </svg>
-              </summary>
-              <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-xl border border-base-200">
-                <li>
-                  <button type="button"
-                          class="text-error hover:bg-error/10"
-                          hx-post="{% url 'notes:trash_note_page' note.id %}">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                    </svg>
-                    Move to Bin
-                  </button>
-                </li>
-              </ul>
-            </details>
-          {% endif %}
-        </div>
         {% endif %}
+      </div>
+
+      {# Metadata Row: Tags & Timestamp #}
+      <div class="flex flex-wrap items-center gap-3 pt-1">
+        {% include 'notes/partials/partial_note_tags.html' with note=note is_owner=is_owner %}
+
+        <div class="h-3 w-px bg-base-300/70 hidden sm:block"></div>
+
+        <span class="text-xs text-base-content/50 font-normal">
+          {% if note.is_trashed %}
+            Deleted {{ note.trashed_at|default:note.updated_at|timesince }} ago
+          {% else %}
+            Last updated {{ note.updated_at|timesince }} ago
+          {% endif %}
+        </span>
       </div>
     </header>
 
-   <!-- main note content -->
-  {#  note-rendered-content is the class initNoteRendering looks for to scope its KaTeX/Mermaid pass to just the note body. #}
-  <section class="note-rendered-content p-6 flex-1 overflow-auto prose prose-lg prose-base-content max-w-[72ch] mx-auto w-full">
-    {# RENDERED MAIN CONTENT HERE  #}
-    {% if note.rendered_content %}
-     <!-- render as safe html -->
-     {{ note.rendered_content|safe }}
-    {% else %}
-     <div class="flex flex-col items-center justify-center py-20 opacity-50 select-none">
-          <span class="italic text-lg">This note is empty.</span>
-          {% if is_owner and not note.is_trashed %}
-            <span class="text-sm">Click 'Edit Note' to add content.</span>
-          {% endif %}
-        </div>
-    {% endif %}
-   </section>
+    {# Rendered Note Content #}
+    <div class="p-6 sm:p-10">
+      <section class="note-rendered-content prose prose-base sm:prose-lg prose-base-content max-w-none w-full">
+        {% if note.rendered_content %}
+          {{ note.rendered_content|safe }}
+        {% else %}
+          <div class="flex flex-col items-center justify-center py-20 text-center opacity-60 select-none">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 mb-2 opacity-50">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+            </svg>
+            <span class="font-display font-medium text-base text-base-content">This page is empty</span>
+            {% if is_owner and not note.is_trashed %}
+              <a href="{% url 'notes:note_edit_page' note.id %}" class="btn btn-primary btn-xs mt-3 rounded-lg text-primary-content">Start writing</a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </section>
+    </div>
 
-  </div>
-</article>
-
+  </article>
+</div>
 {% endblock main %}
 
 {% block extra_scripts %}
