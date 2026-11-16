@@ -3,12 +3,49 @@
 {% block title %}All Pages | PageYard{% endblock title %}
 
 {% block main %}
-<section class="w-full">
-  {% include 'notes/partials/_page_header.html' with title="All Pages" subtitle="Manage and organize your personal knowledge base." %}
+<div class="flex flex-col gap-6 max-w-6xl mx-auto">
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
-        id="notes-grid">
+  {# ── Header with Count & Actions ─────────────────────────────── #}
+  <header class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-base-content leading-tight">
+          All Pages
+        </h1>
+        {% if notes_list.paginator.count %}
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+            {{ notes_list.paginator.count }} page{{ notes_list.paginator.count|pluralize }}
+          </span>
+        {% endif %}
+      </div>
+      <p class="text-xs sm:text-sm text-base-content/60 mt-1">
+        Browse and manage your entire personal knowledge base.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{% url 'notes:notes_search_page' %}"
+         class="btn btn-ghost btn-sm rounded-lg text-base-content/70 hover:bg-base-100 text-xs font-medium gap-1.5 border border-base-200/80">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-3.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <span>Advanced Filter</span>
+      </a>
+
+      <a href="{% url 'notes:new_note_page' %}"
+         class="btn btn-primary btn-sm rounded-lg text-primary-content text-xs font-semibold gap-1.5 shadow-xs border-0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+          <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+        </svg>
+        <span>New Page</span>
+      </a>
+    </div>
+  </header>
+
+  {# ── Notes Grid ─────────────────────────────────────────────── #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="notes-grid">
     {% include 'notes/partials/partial_notes_list.html' %}
   </div>
-</section>
+
+</div>
 {% endblock main %}

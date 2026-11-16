@@ -3,9 +3,18 @@
 @plugin "@tailwindcss/typography";
 @plugin "daisyui";
 
-/* Keep the theme names in sync with _theme_toggle.html */
+/* ═══════════════════════════════════════════════════════════════════════
+   THEME SELECTOR — Change the two names here to swap theme pairs.
+   Available pairs:
+     pageyard / pageyard-dusk           (Original — forest green + amber)
+     sandstone / sandstone-dusk         (Theme 1 — warm desert teal)
+     slate-ink / slate-ink-dusk         (Theme 2 — monochrome writing tool)
+     moss / moss-dusk                   (Theme 3 — refined sage + rose)
+     nightfall / nightfall-dusk         (Theme 4 — copper + navy)
+   Keep names in sync with _theme_toggle.html `value` attr.
+   ═══════════════════════════════════════════════════════════════════════ */
 @plugin "daisyui" {
-  themes: pageyard --default, pageyard-dusk --prefersdark;
+  themes: slate-ink --default, slate-ink-dusk --prefersdark;
 }
 
 @theme {
@@ -14,34 +23,39 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║  ORIGINAL — pageyard / pageyard-dusk                           ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
 @plugin "daisyui/theme" {
   name: "pageyard";
-  default: true;
+  default: false;
   prefersdark: false;
   color-scheme: light;
-  --color-base-100: oklch(97% 0.006 95);
-  --color-base-200: oklch(93% 0.010 92);
-  --color-base-300: oklch(87% 0.015 90);
-  --color-base-content: oklch(24% 0.02 95);
-  --color-primary: oklch(45% 0.12 155);
-  --color-primary-content: oklch(97% 0.01 155);
-  --color-secondary: oklch(72% 0.13 85);
-  --color-secondary-content: oklch(22% 0.03 85);
+  --color-base-100: oklch(99% 0.003 95);
+  --color-base-200: oklch(96% 0.007 95);
+  --color-base-300: oklch(91% 0.012 90);
+  --color-base-content: oklch(22% 0.02 95);
+  --color-primary: oklch(42% 0.125 155);
+  --color-primary-content: oklch(98% 0.01 155);
+  --color-secondary: oklch(58% 0.12 75);
+  --color-secondary-content: oklch(98% 0.01 75);
   --color-accent: oklch(52% 0.045 250);
-  --color-accent-content: oklch(97% 0.01 250);
-  --color-neutral: oklch(32% 0.02 95);
-  --color-neutral-content: oklch(96% 0.01 95);
+  --color-accent-content: oklch(98% 0.01 250);
+  --color-neutral: oklch(28% 0.02 95);
+  --color-neutral-content: oklch(97% 0.01 95);
   --color-info: oklch(68% 0.11 230);
-  --color-info-content: oklch(97% 0.01 230);
-  --color-success: oklch(60% 0.15 145);
-  --color-success-content: oklch(97% 0.02 145);
-  --color-warning: oklch(80% 0.15 80);
-  --color-warning-content: oklch(22% 0.04 80);
+  --color-info-content: oklch(98% 0.01 230);
+  --color-success: oklch(58% 0.15 145);
+  --color-success-content: oklch(98% 0.02 145);
+  --color-warning: oklch(78% 0.16 80);
+  --color-warning-content: oklch(20% 0.04 80);
   --color-error: oklch(56% 0.18 25);
-  --color-error-content: oklch(97% 0.02 25);
-  --radius-selector: 1rem;
-  --radius-field: 0.25rem;
-  --radius-box: 1rem;
+  --color-error-content: oklch(98% 0.02 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
@@ -52,16 +66,16 @@
 @plugin "daisyui/theme" {
   name: "pageyard-dusk";
   default: false;
-  prefersdark: true;
+  prefersdark: false;
   color-scheme: dark;
-  --color-base-100: oklch(21% 0.014 95);
-  --color-base-200: oklch(25% 0.016 93);
-  --color-base-300: oklch(30% 0.018 90);
-  --color-base-content: oklch(92% 0.01 95);
-  --color-primary: oklch(68% 0.13 155);
-  --color-primary-content: oklch(15% 0.02 155);
-  --color-secondary: oklch(76% 0.14 85);
-  --color-secondary-content: oklch(18% 0.03 85);
+  --color-base-100: oklch(20% 0.014 95);
+  --color-base-200: oklch(15% 0.012 95);
+  --color-base-300: oklch(26% 0.016 95);
+  --color-base-content: oklch(93% 0.008 95);
+  --color-primary: oklch(68% 0.14 155);
+  --color-primary-content: oklch(14% 0.02 155);
+  --color-secondary: oklch(74% 0.13 80);
+  --color-secondary-content: oklch(16% 0.03 80);
   --color-accent: oklch(74% 0.055 250);
   --color-accent-content: oklch(15% 0.01 250);
   --color-neutral: oklch(55% 0.02 95);
@@ -74,12 +88,330 @@
   --color-warning-content: oklch(18% 0.03 80);
   --color-error: oklch(66% 0.18 25);
   --color-error-content: oklch(15% 0.02 25);
-  --radius-selector: 1rem;
-  --radius-field: 0.25rem;
-  --radius-box: 1rem;
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
   --depth: 1;
   --noise: 1;
+}
+
+
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║  THEME 1 — Sandstone / Sandstone-Dusk                         ║
+   ║  Warm desert tones. Teal primary on parchment surfaces.        ║
+   ║  Secondary is burnt sienna — like terracotta ink on paper.     ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
+@plugin "daisyui/theme" {
+  name: "sandstone";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: oklch(97% 0.008 75);
+  --color-base-200: oklch(94% 0.012 70);
+  --color-base-300: oklch(89% 0.016 65);
+  --color-base-content: oklch(22% 0.015 55);
+  --color-primary: oklch(40% 0.09 195);
+  --color-primary-content: oklch(97% 0.01 195);
+  --color-secondary: oklch(52% 0.11 45);
+  --color-secondary-content: oklch(97% 0.01 45);
+  --color-accent: oklch(50% 0.06 120);
+  --color-accent-content: oklch(97% 0.01 120);
+  --color-neutral: oklch(30% 0.015 55);
+  --color-neutral-content: oklch(96% 0.008 55);
+  --color-info: oklch(60% 0.1 230);
+  --color-info-content: oklch(97% 0.01 230);
+  --color-success: oklch(55% 0.13 155);
+  --color-success-content: oklch(97% 0.01 155);
+  --color-warning: oklch(76% 0.14 75);
+  --color-warning-content: oklch(22% 0.04 75);
+  --color-error: oklch(55% 0.16 25);
+  --color-error-content: oklch(97% 0.01 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 1;
+}
+
+@plugin "daisyui/theme" {
+  name: "sandstone-dusk";
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+  --color-base-100: oklch(18% 0.012 55);
+  --color-base-200: oklch(14% 0.01 55);
+  --color-base-300: oklch(24% 0.014 55);
+  --color-base-content: oklch(92% 0.007 55);
+  --color-primary: oklch(65% 0.1 195);
+  --color-primary-content: oklch(14% 0.02 195);
+  --color-secondary: oklch(68% 0.12 45);
+  --color-secondary-content: oklch(15% 0.02 45);
+  --color-accent: oklch(70% 0.07 120);
+  --color-accent-content: oklch(15% 0.01 120);
+  --color-neutral: oklch(50% 0.015 55);
+  --color-neutral-content: oklch(96% 0.008 55);
+  --color-info: oklch(70% 0.1 230);
+  --color-info-content: oklch(15% 0.02 230);
+  --color-success: oklch(65% 0.14 155);
+  --color-success-content: oklch(15% 0.02 155);
+  --color-warning: oklch(78% 0.13 75);
+  --color-warning-content: oklch(18% 0.04 75);
+  --color-error: oklch(64% 0.16 25);
+  --color-error-content: oklch(15% 0.02 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 1;
+}
+
+
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║  THEME 2 — Slate & Ink / Slate-Ink-Dusk                       ║
+   ║  Monochrome writing tool. Near-grayscale surfaces with an      ║
+   ║  ink-blue primary and a warm amber secondary (stars, tags).    ║
+   ║  The interface disappears; your words are the colour.          ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
+@plugin "daisyui/theme" {
+  name: "slate-ink";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: oklch(98% 0.004 260);
+  --color-base-200: oklch(95% 0.006 260);
+  --color-base-300: oklch(90% 0.01 255);
+  --color-base-content: oklch(18% 0.012 260);
+  --color-primary: oklch(38% 0.08 260);
+  --color-primary-content: oklch(97% 0.005 260);
+  --color-secondary: oklch(62% 0.14 70);
+  --color-secondary-content: oklch(97% 0.01 70);
+  --color-accent: oklch(48% 0.02 260);
+  --color-accent-content: oklch(97% 0.005 260);
+  --color-neutral: oklch(25% 0.012 260);
+  --color-neutral-content: oklch(96% 0.005 260);
+  --color-info: oklch(58% 0.1 245);
+  --color-info-content: oklch(97% 0.01 245);
+  --color-success: oklch(55% 0.12 155);
+  --color-success-content: oklch(97% 0.01 155);
+  --color-warning: oklch(76% 0.14 80);
+  --color-warning-content: oklch(22% 0.04 80);
+  --color-error: oklch(54% 0.16 25);
+  --color-error-content: oklch(97% 0.01 25);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "slate-ink-dusk";
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+  --color-base-100: oklch(16% 0.008 260);
+  --color-base-200: oklch(12% 0.006 260);
+  --color-base-300: oklch(22% 0.01 260);
+  --color-base-content: oklch(92% 0.005 260);
+  --color-primary: oklch(62% 0.09 260);
+  --color-primary-content: oklch(12% 0.015 260);
+  --color-secondary: oklch(76% 0.13 70);
+  --color-secondary-content: oklch(15% 0.02 70);
+  --color-accent: oklch(60% 0.02 260);
+  --color-accent-content: oklch(14% 0.005 260);
+  --color-neutral: oklch(45% 0.01 260);
+  --color-neutral-content: oklch(96% 0.005 260);
+  --color-info: oklch(68% 0.1 245);
+  --color-info-content: oklch(14% 0.02 245);
+  --color-success: oklch(65% 0.13 155);
+  --color-success-content: oklch(14% 0.02 155);
+  --color-warning: oklch(78% 0.13 80);
+  --color-warning-content: oklch(18% 0.04 80);
+  --color-error: oklch(64% 0.16 25);
+  --color-error-content: oklch(14% 0.02 25);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║  THEME 3 — Moss / Moss-Dusk  (RECOMMENDED)                    ║
+   ║  Your current forest identity, refined. Cooler sage-green      ║
+   ║  primary (less saturated), properly dark background, and a     ║
+   ║  clay-rose secondary for richer contrast.                      ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
+@plugin "daisyui/theme" {
+  name: "moss";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: oklch(98.5% 0.004 100);
+  --color-base-200: oklch(95.5% 0.008 100);
+  --color-base-300: oklch(90% 0.013 95);
+  --color-base-content: oklch(20% 0.016 100);
+  --color-primary: oklch(40% 0.08 160);
+  --color-primary-content: oklch(97% 0.01 160);
+  --color-secondary: oklch(56% 0.1 25);
+  --color-secondary-content: oklch(97% 0.01 25);
+  --color-accent: oklch(50% 0.04 130);
+  --color-accent-content: oklch(97% 0.005 130);
+  --color-neutral: oklch(26% 0.015 100);
+  --color-neutral-content: oklch(96% 0.008 100);
+  --color-info: oklch(60% 0.1 235);
+  --color-info-content: oklch(97% 0.01 235);
+  --color-success: oklch(55% 0.13 150);
+  --color-success-content: oklch(97% 0.01 150);
+  --color-warning: oklch(77% 0.14 80);
+  --color-warning-content: oklch(22% 0.04 80);
+  --color-error: oklch(55% 0.17 25);
+  --color-error-content: oklch(97% 0.01 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "moss-dusk";
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: oklch(14% 0.008 160);
+  --color-base-200: oklch(11% 0.006 160);
+  --color-base-300: oklch(20% 0.01 160);
+  --color-base-content: oklch(92% 0.006 160);
+  --color-primary: oklch(66% 0.09 160);
+  --color-primary-content: oklch(12% 0.015 160);
+  --color-secondary: oklch(72% 0.1 25);
+  --color-secondary-content: oklch(14% 0.02 25);
+  --color-accent: oklch(68% 0.05 130);
+  --color-accent-content: oklch(14% 0.008 130);
+  --color-neutral: oklch(48% 0.012 160);
+  --color-neutral-content: oklch(96% 0.006 160);
+  --color-info: oklch(68% 0.1 235);
+  --color-info-content: oklch(14% 0.02 235);
+  --color-success: oklch(65% 0.14 150);
+  --color-success-content: oklch(14% 0.02 150);
+  --color-warning: oklch(78% 0.13 80);
+  --color-warning-content: oklch(18% 0.04 80);
+  --color-error: oklch(64% 0.17 25);
+  --color-error-content: oklch(14% 0.02 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║  THEME 4 — Nightfall / Nightfall-Dusk                         ║
+   ║  Moody copper + navy. Warm and inviting without the standard   ║
+   ║  acid-green-on-black look. The light counterpart is a soft     ║
+   ║  warm grey with the same copper accent.                        ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
+@plugin "daisyui/theme" {
+  name: "nightfall";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: oklch(96% 0.005 60);
+  --color-base-200: oklch(93% 0.008 55);
+  --color-base-300: oklch(88% 0.012 50);
+  --color-base-content: oklch(20% 0.012 60);
+  --color-primary: oklch(52% 0.13 55);
+  --color-primary-content: oklch(97% 0.01 55);
+  --color-secondary: oklch(45% 0.06 245);
+  --color-secondary-content: oklch(97% 0.005 245);
+  --color-accent: oklch(55% 0.04 80);
+  --color-accent-content: oklch(97% 0.005 80);
+  --color-neutral: oklch(28% 0.01 60);
+  --color-neutral-content: oklch(96% 0.005 60);
+  --color-info: oklch(58% 0.09 240);
+  --color-info-content: oklch(97% 0.01 240);
+  --color-success: oklch(56% 0.12 155);
+  --color-success-content: oklch(97% 0.01 155);
+  --color-warning: oklch(76% 0.14 75);
+  --color-warning-content: oklch(22% 0.04 75);
+  --color-error: oklch(55% 0.17 25);
+  --color-error-content: oklch(97% 0.01 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "nightfall-dusk";
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+  --color-base-100: oklch(13% 0.015 265);
+  --color-base-200: oklch(10% 0.012 265);
+  --color-base-300: oklch(19% 0.018 265);
+  --color-base-content: oklch(91% 0.005 265);
+  --color-primary: oklch(72% 0.14 55);
+  --color-primary-content: oklch(13% 0.025 55);
+  --color-secondary: oklch(65% 0.06 245);
+  --color-secondary-content: oklch(13% 0.01 245);
+  --color-accent: oklch(70% 0.05 80);
+  --color-accent-content: oklch(14% 0.008 80);
+  --color-neutral: oklch(45% 0.01 265);
+  --color-neutral-content: oklch(96% 0.005 265);
+  --color-info: oklch(68% 0.09 240);
+  --color-info-content: oklch(14% 0.02 240);
+  --color-success: oklch(65% 0.13 155);
+  --color-success-content: oklch(14% 0.02 155);
+  --color-warning: oklch(78% 0.13 75);
+  --color-warning-content: oklch(18% 0.04 75);
+  --color-error: oklch(64% 0.17 25);
+  --color-error-content: oklch(14% 0.02 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+
+/* Subtle modern scrollbar */
+@utility scrollbar-subtle {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-base-300) transparent;
 }

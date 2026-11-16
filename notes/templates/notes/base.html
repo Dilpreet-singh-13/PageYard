@@ -13,7 +13,7 @@
     <script>
         (function () {
             var stored = localStorage.getItem('pageyard-theme');
-            var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'pageyard-dusk' : 'pageyard');
+            var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'moss-dusk' : 'moss');
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
@@ -22,6 +22,7 @@
     {% block meta %}
     <meta name="description" content="PageYard — the modern, distraction-free knowledge base. Create pages, tag subjects, and build a second brain.">
     {% endblock meta %}
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
     {# Alpine: theme store + toast manager — reads back the value the blocking script above already set, so there's no divergence #}
@@ -29,12 +30,12 @@
         document.addEventListener('alpine:init', () => {
             // ── Theme persistence ──────────────────────────────────
             Alpine.store('theme', {
-                current: document.documentElement.getAttribute('data-theme') || 'pageyard',
+                current: document.documentElement.getAttribute('data-theme') || 'moss',
                 toggle() {
-                    this.current = this.current === 'pageyard' ? 'pageyard-dusk' : 'pageyard';
+                    this.current = this.current === 'moss' ? 'moss-dusk' : 'moss';
                     localStorage.setItem('pageyard-theme', this.current);
                 },
-                get isDark() { return this.current === 'pageyard-dusk'; },
+                get isDark() { return this.current === 'moss-dusk'; },
             });
 
             // ── Tag editing UI state (used by tags page) ──────────

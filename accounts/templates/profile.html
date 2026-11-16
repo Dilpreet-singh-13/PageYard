@@ -1,114 +1,201 @@
 {% extends 'notes/dashboard_base.html' %}
 {% load account %}
 
-{% block title %}Profile | PageYard{% endblock title %}
+{% block title %}Profile & Settings | PageYard{% endblock title %}
 
 {% block main %}
-<div class="max-w-3xl mx-auto w-full space-y-8">
+<div class="max-w-4xl mx-auto w-full flex flex-col gap-6">
 
-    {% include 'notes/partials/_page_header.html' with title="Your Profile" subtitle="Manage your account settings, preferences, and security." %}
+    {# ── Breadcrumbs ──────────────────────────────────────────── #}
+    <nav class="breadcrumbs text-xs text-base-content/50 py-0 px-1" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="{% url 'notes:dashboard' %}" class="hover:text-primary transition-colors">Home</a></li>
+            <li class="text-base-content/80 font-medium">Settings & Profile</li>
+        </ul>
+    </nav>
 
-    {# Avatar + User Info #}
-    <div class="flex items-center gap-5">
-        <div class="avatar placeholder">
-            <div class="bg-base-300 text-base-content/60 w-20 h-20 rounded-full shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10">
-                    <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
-                </svg>
+    {# ── User Hero Card ──────────────────────────────────────── #}
+    <div class="bg-base-100 rounded-2xl border border-base-200/90 shadow-2xs p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+        <div class="flex items-center gap-4 sm:gap-5 min-w-0">
+            <div class="size-16 sm:size-18 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-display font-bold text-2xl sm:text-3xl ring-2 ring-primary/20 shrink-0 shadow-2xs">
+                {% if user.email %}{{ user.email|slice:":1"|upper }}{% elif user.username %}{{ user.username|slice:":1"|upper }}{% else %}U{% endif %}
             </div>
-        </div>
-        <div>
-            <h2 class="text-xl font-bold text-base-content">{% user_display user %}</h2>
-            <p class="text-sm text-base-content/50">Member since {{ user.date_joined|date:"F j, Y" }}</p>
-        </div>
-    </div>
-
-    {# Stats #}
-    <div class="stats stats-horizontal bg-base-100 shadow-sm border border-base-200/80 rounded-2xl w-full">
-        {% include 'notes/partials/_stat_card.html' with stat_value=note_count stat_label="Total Notes" stat_color="text-primary" %}
-        {% include 'notes/partials/_stat_card.html' with stat_value=tag_count stat_label="Total Tags" stat_color="text-secondary" %}
-    </div>
-
-    {# Account Information #}
-    <div class="card bg-base-100 rounded-2xl shadow-sm border border-base-200/80">
-        <div class="card-body p-6 md:p-8">
-            <h2 class="text-xs font-bold border-b border-base-200/50 pb-3 mb-5 uppercase tracking-widest text-base-content/50">Account Information</h2>
-
-            <div class="space-y-5">
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend text-[10px] font-bold text-base-content/40 uppercase tracking-wider">Primary Email</legend>
-                    <span class="text-lg md:text-xl font-bold text-primary break-all">{% user_display user %}</span>
-                </fieldset>
-
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend text-[10px] font-bold text-base-content/40 uppercase tracking-wider">Member Since</legend>
-                    <span class="text-sm font-medium text-base-content/80">{{ user.date_joined|date:"F j, Y" }}</span>
-                </fieldset>
-            </div>
-        </div>
-    </div>
-
-    {# Preferences #}
-    <div class="card bg-base-100 rounded-2xl shadow-sm border border-base-200/80">
-        <div class="card-body p-6 md:p-8">
-            <h2 class="text-xs font-bold border-b border-base-200/50 pb-3 mb-5 uppercase tracking-widest text-base-content/50">Preferences</h2>
-
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-sm font-semibold text-base-content">Dark Mode</span>
-                    <p class="text-xs text-base-content/50">Switch between light and dark themes</p>
+            <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h1 class="font-display text-xl sm:text-2xl font-bold tracking-tight text-base-content truncate">
+                        {% user_display user %}
+                    </h1>
+                    <span class="badge badge-primary badge-sm font-semibold rounded-md">Personal Space</span>
                 </div>
-                {% include 'notes/partials/_theme_toggle.html' %}
-            </div>
-        </div>
-    </div>
-
-    {# Security & Authentication #}
-    <div class="card bg-base-100 rounded-2xl shadow-sm border border-base-200/80">
-        <div class="card-body p-6 md:p-8">
-            <h2 class="text-xs font-bold border-b border-base-200/50 pb-3 mb-5 uppercase tracking-widest text-base-content/50">Security & Authentication</h2>
-
-            <div class="flex flex-col gap-3">
-                <a href="{% url 'account_email' %}" class="group flex items-center justify-between p-4 rounded-2xl border border-base-200 hover:border-primary/50 hover:bg-base-200/30 transition-all bg-base-100">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-base-200 rounded-lg text-base-content/60 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
-                        </div>
-                        <span class="font-semibold text-base-content/80 group-hover:text-primary transition-colors text-sm md:text-base">Manage Email Addresses</span>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-                </a>
-
-                <a href="{% url 'account_change_password' %}" class="group flex items-center justify-between p-4 rounded-2xl border border-base-200 hover:border-primary/50 hover:bg-base-200/30 transition-all bg-base-100">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-base-200 rounded-lg text-base-content/60 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-                        </div>
-                        <span class="font-semibold text-base-content/80 group-hover:text-primary transition-colors text-sm md:text-base">Change Password</span>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    {# Danger Zone #}
-    <div class="card bg-error/20 rounded-2xl border border-error/20 mt-6 overflow-hidden">
-        <div class="card-body p-6 md:p-8">
-            <h2 class="text-xs font-bold uppercase tracking-widest text-error mb-2">Danger Zone</h2>
-
-            <div class="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-                <p class="text-sm text-base-content/70 leading-relaxed max-w-md">
-                    Once you delete your account, there is no going back. All of your notes, tags, and personal data will be permanently erased. Please be certain.
+                <p class="text-xs sm:text-sm text-base-content/55 mt-1 truncate">
+                    {{ user.email|default:"No email attached" }} · Member since {{ user.date_joined|date:"F Y" }}
                 </p>
-                <div class="w-full md:w-auto shrink-0">
-                    <button hx-delete="{% url 'accounts:delete-account' %}"
-                            hx-confirm="Are you sure you want to delete the user: '{% user_display user %}'? This action cannot be undone."
-                            class="btn btn-error w-full md:w-auto text-error-content shadow-sm shadow-error/20 rounded-xl font-bold border-0">
-                        Delete Account
-                    </button>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'account_logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost btn-sm text-xs font-semibold text-error hover:bg-error/10 rounded-lg gap-1.5 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                </svg>
+                <span>Log Out</span>
+            </button>
+        </form>
+    </div>
+
+    {# ── Quick Metrics ────────────────────────────────────────── #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        {# Total Notes #}
+        <a href="{% url 'notes:all_notes_view' %}"
+           class="group flex items-center justify-between p-4 bg-base-100 rounded-xl border border-base-200/90 shadow-2xs hover:border-primary/40 hover:shadow-xs transition-all">
+            <div class="flex items-center gap-3.5">
+                <div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xs font-medium text-base-content/60 block">Total Pages Created</span>
+                    <span class="font-display text-xl font-bold text-base-content leading-tight">{{ note_count|default:"0" }}</span>
                 </div>
             </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4 text-base-content/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
+            </svg>
+        </a>
+
+        {# Organized Tags #}
+        <a href="{% url 'notes:tag_list_page' %}"
+           class="group flex items-center justify-between p-4 bg-base-100 rounded-xl border border-base-200/90 shadow-2xs hover:border-secondary/40 hover:shadow-xs transition-all">
+            <div class="flex items-center gap-3.5">
+                <div class="size-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xs font-medium text-base-content/60 block">Organized Tags</span>
+                    <span class="font-display text-xl font-bold text-base-content leading-tight">{{ tag_count|default:"0" }}</span>
+                </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4 text-base-content/30 group-hover:text-secondary group-hover:translate-x-0.5 transition-all">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
+            </svg>
+        </a>
+    </div>
+
+    {# ── Account & Preferences Section ────────────────────────── #}
+    <div class="bg-base-100 rounded-2xl border border-base-200/90 shadow-2xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-base-200/80 bg-base-100">
+            <h2 class="font-display text-sm font-bold tracking-tight text-base-content">Account Details</h2>
+            <p class="text-xs text-base-content/50">Core credentials and workspace environment details</p>
+        </div>
+
+        <div class="divide-y divide-base-200/70 text-xs sm:text-sm">
+            {# Email row #}
+            <div class="p-5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <span class="font-semibold text-base-content block">Primary Email</span>
+                    <span class="text-xs text-base-content/50">Used for signing in and notifications</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-mono text-xs px-2.5 py-1 rounded-md bg-base-200/70 border border-base-300/40 text-base-content">
+                        {% user_display user %}
+                    </span>
+                    <a href="{% url 'account_email' %}" class="btn btn-ghost btn-xs text-xs text-primary hover:bg-primary/10">Manage</a>
+                </div>
+            </div>
+
+            {# Date Joined #}
+            <div class="p-5 sm:px-6 flex items-center justify-between gap-2">
+                <div>
+                    <span class="font-semibold text-base-content block">Member Since</span>
+                    <span class="text-xs text-base-content/50">Registration timestamp</span>
+                </div>
+                <span class="text-xs font-medium text-base-content/75">{{ user.date_joined|date:"F j, Y" }}</span>
+            </div>
+
+            {# Theme toggle row #}
+            <div class="p-5 sm:px-6 flex items-center justify-between gap-2">
+                <div>
+                    <span class="font-semibold text-base-content block">Theme Preference</span>
+                    <span class="text-xs text-base-content/50">Toggle between paper light and dusk dark modes</span>
+                </div>
+                {% include 'notes/partials/_theme_toggle.html' with toggle_style="switch" %}
+            </div>
+        </div>
+    </div>
+
+    {# ── Security & Authentication ────────────────────────────── #}
+    <div class="bg-base-100 rounded-2xl border border-base-200/90 shadow-2xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-base-200/80 bg-base-100">
+            <h2 class="font-display text-sm font-bold tracking-tight text-base-content">Security & Access</h2>
+            <p class="text-xs text-base-content/50">Manage credentials and authentication methods</p>
+        </div>
+
+        <div class="p-4 sm:p-6 flex flex-col gap-3">
+            <a href="{% url 'account_email' %}"
+               class="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl border border-base-200/90 hover:border-primary/40 hover:bg-base-200/30 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="size-9 rounded-lg bg-base-200/80 text-base-content/60 group-hover:bg-primary/10 group-hover:text-primary transition-colors flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-4.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-xs sm:text-sm font-semibold text-base-content group-hover:text-primary transition-colors block">Manage Email Addresses</span>
+                        <span class="text-[11px] text-base-content/50">Add secondary email addresses or change primary email</span>
+                    </div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4 text-base-content/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all">
+                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
+                </svg>
+            </a>
+
+            <a href="{% url 'account_change_password' %}"
+               class="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl border border-base-200/90 hover:border-primary/40 hover:bg-base-200/30 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="size-9 rounded-lg bg-base-200/80 text-base-content/60 group-hover:bg-primary/10 group-hover:text-primary transition-colors flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="size-4.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-xs sm:text-sm font-semibold text-base-content group-hover:text-primary transition-colors block">Change Password</span>
+                        <span class="text-[11px] text-base-content/50">Update your account password for enhanced security</span>
+                    </div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4 text-base-content/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all">
+                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    {# ── Danger Zone ──────────────────────────────────────────── #}
+    <div class="bg-base-100 rounded-2xl border border-error/30 shadow-2xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-error/20 bg-error/5 flex items-center gap-2 text-error">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+                <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+            </svg>
+            <h2 class="font-display text-sm font-bold tracking-tight">Danger Zone</h2>
+        </div>
+
+        <div class="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="max-w-lg">
+                <span class="text-xs sm:text-sm font-semibold text-base-content block">Delete Account & Data</span>
+                <p class="text-xs text-base-content/60 mt-0.5 leading-relaxed">
+                    Permanently delete your account along with all notes, tags, and media attachments. This action is irreversible.
+                </p>
+            </div>
+
+            <button hx-delete="{% url 'accounts:delete-account' %}"
+                    hx-confirm="Are you sure you want to delete your account '{% user_display user %}'? All your pages and tags will be permanently destroyed."
+                    class="btn btn-error btn-sm rounded-lg text-error-content text-xs font-semibold shadow-xs border-0 shrink-0">
+                Delete Account
+            </button>
         </div>
     </div>
 
